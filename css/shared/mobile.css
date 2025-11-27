@@ -1,0 +1,63 @@
+/* ===========================================
+   MOBILE OVERRIDES
+   =========================================== */
+
+/* Mobile spacing */
+@media screen and (max-width: 480px) {
+  .form-line,
+  .form-input-wide[data-type="control_head"] {
+    margin: 6px 6px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* Let the card start near the top */
+  #stage {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  #stage > .form-all {
+    margin-bottom: 20px !important;
+  }
+
+  /* Trim Jotform's default big top margin on mobile,
+     but keep some space so builder tools don't cover it */
+  .supernova .form-all,
+  body:not(.isEmbed) .form-all {
+    margin-top: 40px !important;
+  }
+
+  .form-all {
+    border-radius: 0 !important;
+    color: #ffffff !important;
+  }
+
+  .form-header-group .form-header,
+  .form-header-group .form-subHeader {
+    color: #f7f7f7 !important;
+  }
+}
+
+/* ===========================================
+   MOBILE SINGLE-CHOICE CENTERING
+   =========================================== */
+
+@media screen and (max-width: 480px) {
+  .form-single-choice .form-input,
+  .form-single-choice .form-radio-group {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .form-single-choice .form-radio-group {
+    list-style: none !important;
+  }
+
+  .form-single-choice .form-radio-item {
+    width: auto !important;
+    margin: 4px 10px !important;
+  }
+}

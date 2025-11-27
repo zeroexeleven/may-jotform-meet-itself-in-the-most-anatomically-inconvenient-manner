@@ -1,0 +1,44 @@
+/* ===========================================
+   BUTTON COLORS (DESKTOP + MOBILE)
+   =========================================== */
+
+/* Desktop + general */
+.form-all .form-submit-button,
+.form-all .form-submit-button-simple,
+.form-all .jf-form-buttons button,
+.form-all .jf-form-buttons .btn-save,
+.form-all .jf-form-buttons .form-sbutton {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+/* Mobile override (same look, scoped for safety) */
+@media screen and (max-width: 480px) {
+  .form-all .form-submit-button,
+  .form-all .form-submit-button-simple,
+  .form-all .jf-form-buttons button,
+  .form-all .jf-form-buttons .btn-save,
+  .form-all .jf-form-buttons .form-sbutton {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+  }
+}
+
+/* ===========================================
+   PROGRESSBAR
+   =========================================== */
+
+#progressBar,
+.form-progressbar {
+  background-color: rgba(23, 31, 27, 0.9);
+}
+
+#progressBar .bar {
+  background-color: #5f7c4b !important;
+}
+
+.rating-item.checked {
+  color: #5f7c4b !important;
+}

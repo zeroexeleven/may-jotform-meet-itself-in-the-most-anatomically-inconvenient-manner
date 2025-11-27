@@ -1,0 +1,31 @@
+/* ===========================================
+   BRANDING
+   =========================================== */
+
+#stage .jotform-branding,
+#stage .powered-by-jotform {
+  opacity: 0.5;
+}
+
+/* Soften & push Jotform branding down on the form pages */
+#stage .jotform-branding,
+#stage .powered-by-jotform {
+  display: block !important;
+  margin-top: 40px !important;
+  text-align: center !important;
+  font-size: 10px !important;
+  opacity: 0.18 !important;  /* very faint but still visible */
+}
+
+/* ===========================================
+   HELPER UTILITIES
+   =========================================== */
+
+/* helper "[none_hide]" block */
+.form-line:has(input.form-checkbox[name*="none_hide"]) > .form-label {
+  display: none !important;
+}
+
+.form-line:has(input.form-checkbox[name*="none_hide"]) {
+  margin-top: -10px !important;
+}
