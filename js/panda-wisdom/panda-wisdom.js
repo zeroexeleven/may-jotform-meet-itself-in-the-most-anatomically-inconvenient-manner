@@ -246,9 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Close button
   if (closeBtn) {
-    closeBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      
+    closeBtn.addEventListener("click", () => {
       // Try to extract edit URL from query params
       const params = new URLSearchParams(window.location.search);
       const editURL = params.get("edit");
