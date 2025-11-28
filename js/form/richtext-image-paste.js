@@ -8,6 +8,87 @@
     
     // Store for pasted images per editor
     var pastedImages = {};
+    var globalContext = (typeof window !== 'undefined') ? window : {};
+    var debugPanelEnabled = (typeof globalContext.RICHTEXT_DEBUG === 'undefined') ? true : !!globalContext.RICHTEXT_DEBUG;
+    var debugPanelBody = null;
+    
+    function logDebug(message, data) {
+        if (typeof console !== 'undefined' && console.log) {
+            console.log('[RichText]', message, data || '');
+        }
+        if (!debugPanelEnabled) return;
+        var body = ensureDebugPanel();
+        if (!body) return;
+        var entry = document.createElement('div');
+        var ts = new Date().toLocaleTimeString();
+        var extra = data ? ' ' + formatDebugData(data) : '';
+        entry.textContent = ts + ' - ' + message + extra;
+        body.appendChild(entry);
+        while (body.children.length > 80) {
+            body.removeChild(body.firstChild);
+        }
+        body.scrollTop = body.scrollHeight;
+    }
+    
+    function formatDebugData(data) {
+        try {
+            if (typeof data === 'string') return data;
+            return JSON.stringify(data);
+        } catch (err) {
+            return '[unserializable]';
+        }
+    }
+    
+    function ensureDebugPanel() {
+        if (!debugPanelEnabled) return null;
+        if (debugPanelBody) return debugPanelBody;
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', ensureDebugPanel, { once: true });
+            return null;
+        }
+        var panel = document.createElement('div');
+        panel.id = 'richtext-debug-panel';
+        panel.style.position = 'fixed';
+        panel.style.bottom = '12px';
+        panel.style.right = '12px';
+        panel.style.zIndex = '9999';
+        panel.style.fontSize = '11px';
+        panel.style.fontFamily = 'monospace';
+        panel.style.maxWidth = '90vw';
+        panel.style.color = '#f7f7f7';
+        panel.style.background = 'rgba(0,0,0,0.7)';
+        panel.style.borderRadius = '6px';
+        panel.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+        
+        var toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.textContent = 'Logs';
+        toggle.style.background = 'rgba(255,255,255,0.15)';
+        toggle.style.color = '#fff';
+        toggle.style.border = 'none';
+        toggle.style.padding = '4px 10px';
+        toggle.style.cursor = 'pointer';
+        toggle.style.width = '100%';
+        toggle.style.fontSize = '11px';
+        toggle.style.borderRadius = '6px 6px 0 0';
+        
+        var body = document.createElement('div');
+        body.style.maxHeight = '160px';
+        body.style.overflow = 'auto';
+        body.style.padding = '6px 8px';
+        body.style.display = 'none';
+        
+        toggle.addEventListener('click', function() {
+            var isVisible = body.style.display === 'block';
+            body.style.display = isVisible ? 'none' : 'block';
+        });
+        
+        panel.appendChild(toggle);
+        panel.appendChild(body);
+        document.body.appendChild(panel);
+        debugPanelBody = body;
+        return debugPanelBody;
+    }
     
     function init() {
         // Wait for nicEdit to be available
@@ -44,13 +125,11 @@
         for (var i = 0; i < editors.length; i++) {
             var editor = editors[i];
             var instances = editor.nicInstances;
-            
             if (!instances) continue;
             
             for (var j = 0; j < instances.length; j++) {
                 var instance = instances[j];
                 if (!instance.elm || instance._pasteHandlerAdded) continue;
-                
                 attachPasteHandler(instance);
                 instance._pasteHandlerAdded = true;
             }
@@ -81,13 +160,9 @@
                 if (mutation.addedNodes && mutation.addedNodes.length > 0) {
                     for (var i = 0; i < mutation.addedNodes.length; i++) {
                         var node = mutation.addedNodes[i];
-                        
-                        // Check if it's an image
                         if (node.nodeName === 'IMG') {
                             handleInsertedImage(node, instance, textareaId);
                         }
-                        
-                        // Check if it contains images
                         if (node.querySelectorAll) {
                             var imgs = node.querySelectorAll('img');
                             for (var j = 0; j < imgs.length; j++) {
@@ -99,13 +174,11 @@
             });
         });
         
-        // Start observing
         observer.observe(editorElement, {
             childList: true,
             subtree: true
         });
         
-        // Store observer reference for cleanup
         instance._imageObserver = observer;
     }
 
@@ -154,7 +227,7 @@
         img.classList.add('richtext-captured');
         
         var src = img.src;
-        console.log('Image inserted into editor:', src);
+        logDebug('Image inserted into editor', { src: src ? src.slice(0, 80) : 'n/a' });
         
         // Apply styling to ensure visibility
         img.style.maxWidth = '100%';
@@ -201,8 +274,10 @@
                 imgElement.removeAttribute('data-original-src');
                 captureImageData(dataUrl, textareaId);
                 persistEditorContent(instance || getInstanceFromElement(imgElement));
+                logDebug('Converted inline image', { width: width, height: height });
             } catch (err) {
                 console.warn('Inline conversion failed, falling back to external capture:', err);
+                logDebug('Inline conversion failed', err && err.message ? err.message : 'conversion error');
                 captureExternalImage(imgElement, textareaId, instance);
             }
         };
@@ -219,16 +294,16 @@
     }
     
     function persistEditorContent(instance) {
-        if (!instance) return;
-        if (instance.saveContent) {
-            instance.saveContent();
-        }
+        if (!instance || !instance.elm) return;
+        if (instance._isPersisting) return;
+        instance._isPersisting = true;
         if (instance.e && instance.e.tagName === 'TEXTAREA') {
             instance.e.value = instance.elm.innerHTML;
             var evt = document.createEvent('HTMLEvents');
             evt.initEvent('change', true, false);
             instance.e.dispatchEvent(evt);
         }
+        instance._isPersisting = false;
     }
     
     
@@ -249,13 +324,15 @@
             
             if (textareaId && pastedImages[textareaId]) {
                 pastedImages[textareaId].push(imageData);
-                console.log('Image captured for field ' + textareaId + ':', {
+                logDebug('Image captured', {
+                    field: textareaId,
                     count: pastedImages[textareaId].length,
                     type: mime
                 });
             }
         } catch (e) {
             console.warn('Could not capture image data:', e);
+            logDebug('Could not capture image data', e && e.message ? e.message : 'capture error');
         }
     }
     
@@ -263,7 +340,7 @@
         // Try to convert external/blob images to data URLs
         var originalSrc = imgElement.src;
         
-        console.log('Attempting to convert image:', originalSrc);
+        logDebug('Attempting to convert image', { src: originalSrc ? originalSrc.slice(0, 80) : 'n/a' });
         
         // Create a temporary canvas immediately to prevent the image from being cleaned up
         var canvas = document.createElement('canvas');
@@ -289,7 +366,7 @@
                 // Convert to data URL
                 var dataUrl = canvas.toDataURL('image/png');
                 
-                console.log('Successfully converted to data URL, length:', dataUrl.length);
+                logDebug('Converted external/blob image', { length: dataUrl.length });
                 
                 // Replace the blob URL with data URL in the editor IMMEDIATELY
                 imgElement.src = dataUrl;
@@ -308,7 +385,7 @@
                 var activeInstance = instanceRef || getInstanceFromElement(imgElement);
                 persistEditorContent(activeInstance);
                 
-                console.log('Image updated in editor and textarea');
+                logDebug('Image updated in editor and textarea');
                 
                 // Revoke the blob URL to free memory
                 if (originalSrc.indexOf('blob:') === 0) {
@@ -318,11 +395,13 @@
                 }
             } catch (e) {
                 console.error('Failed to convert image to data URL:', e);
+                logDebug('Failed to convert image to data URL', e && e.message ? e.message : 'unknown error');
             }
         };
         
         img.onerror = function(e) {
             console.error('Failed to load image from:', originalSrc, e);
+            logDebug('Failed to load image', { src: originalSrc, error: e && e.message ? e.message : e });
         };
         
         // Load the image immediately
@@ -437,6 +516,7 @@
                 }
             } catch (e) {
                 console.warn('Could not convert data URL to blob:', e);
+                logDebug('Could not convert data URL to blob', e && e.message ? e.message : 'error');
             }
             return;
         }
@@ -444,7 +524,7 @@
         // For external URLs, just insert them directly
         // Note: Cross-origin images may not work for conversion
         insertImageIntoEditor(instance, url);
-        console.log('Inserted image from URL:', url);
+        logDebug('Inserted image from URL', { src: url ? url.slice(0, 80) : 'n/a' });
     }
     
     function processImage(blob, instance, textareaId) {
@@ -463,7 +543,8 @@
             
             if (textareaId && pastedImages[textareaId]) {
                 pastedImages[textareaId].push(imageData);
-                console.log('Image saved for field ' + textareaId + ':', {
+                logDebug('Image saved from paste', {
+                    field: textareaId,
                     count: pastedImages[textareaId].length,
                     size: formatBytes(blob.size),
                     type: blob.type
@@ -476,6 +557,7 @@
         
         reader.onerror = function() {
             console.error('Failed to read pasted image');
+            logDebug('Failed to read pasted image');
         };
         
         reader.readAsDataURL(blob);
@@ -546,6 +628,7 @@
             } catch (e) {
                 // Fallback: append to end
                 console.warn('Failed to insert at cursor, appending to end:', e);
+                logDebug('Failed to insert at cursor', e && e.message ? e.message : 'insert error');
                 instance.elm.appendChild(document.createElement('br'));
                 instance.elm.appendChild(img);
                 instance.elm.appendChild(document.createElement('br'));
@@ -564,7 +647,7 @@
             instance.e.dispatchEvent(event);
         }
         
-        console.log('Image inserted into editor');
+        logDebug('Image inserted via script');
     }
     
     function formatBytes(bytes) {
@@ -620,11 +703,11 @@
                 imageDataInput.value = JSON.stringify(pastedImages);
                 form.appendChild(imageDataInput);
                 
-                console.log('Submitting form with pasted images:', pastedImages);
+                logDebug('Submitting form with pasted images', pastedImages);
             }
         });
         
-        console.log('Form submit handler attached for image data');
+        logDebug('Form submit handler attached for image data');
     }
     
     // Store images in URL parameters for thank you page
@@ -641,7 +724,7 @@
             
             if (hasImages) {
                 sessionStorage.setItem('jotform_richtext_images', JSON.stringify(pastedImages));
-                console.log('Stored pasted images in sessionStorage for thank you page');
+                logDebug('Stored pasted images for thank you page');
             }
         }
     }
