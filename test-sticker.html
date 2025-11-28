@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sticker Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    #editor {
+      border: 2px solid #5f7c4b;
+      padding: 10px;
+      min-height: 200px;
+      background: #2a2a2a;
+      margin: 20px 0;
+    }
+    #editor img {
+      max-width: 100%;
+      height: auto;
+      display: inline-block;
+    }
+    #output {
+      border: 2px solid #666;
+      padding: 10px;
+      background: #333;
+      word-break: break-all;
+      margin: 20px 0;
+    }
+    button {
+      background: #5f7c4b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      background: #444;
+      border-left: 4px solid #5f7c4b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sticker/Image Test</h1>
+  <p>Paste an image or insert a sticker from your mobile keyboard into the box below:</p>
+  
+  <div id="editor" contenteditable="true">
+    Click here and paste/insert image...
+  </div>
+  
+  <button onclick="checkImages()">Check Images</button>
+  <button onclick="convertAll()">Convert All Blobs</button>
+  
+  <div id="status"></div>
+  
+  <h3>Current HTML:</h3>
+  <div id="output"></div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    
+    function log(msg) {
+      const div = document.createElement('div');
+      div.className = 'status';
+      div.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+      status.appendChild(div);
+      console.log(msg);
+    }
+    
+    // Watch for images being added
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeName === 'IMG') {
+            handleImage(node);
+          }
+          if (node.querySelectorAll) {
+            node.querySelectorAll('img').forEach(handleImage);
+          }
+        });
+      });
+      updateOutput();
+    });
+    
+    observer.observe(editor, { childList: true, subtree: true });
+    
+    function handleImage(img) {
+      const src = img.src || '';
+      log('Image detected: ' + src.slice(0, 80));
+      
+      if (src.indexOf('blob:') === 0) {
+        log('BLOB URL detected - attempting conversion...');
+        convertBlobToDataUrl(img);
+      } else if (src.indexOf('data:image') === 0) {
+        log('Data URL detected (already converted)');
+      } else {
+        log('External URL detected: ' + src);
+      }
+    }
+    
+    function convertBlobToDataUrl(img) {
+      const src = img.src;
+      
+      fetch(src)
+        .then(response => response.blob())
+        .then(blob => {
+          log('Fetched blob, size: ' + blob.size + ' bytes');
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            log('Converted to data URL, length: ' + dataUrl.length);
+            img.src = dataUrl;
+            img.setAttribute('src', dataUrl);
+            updateOutput();
+          };
+          reader.onerror = function() {
+            log('ERROR: FileReader failed');
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(err => {
+          log('ERROR: Fetch failed - ' + err.message);
+        });
+    }
+    
+    function checkImages() {
+      const images = editor.querySelectorAll('img');
+      log('Found ' + images.length + ' images');
+      images.forEach((img, i) => {
+        const src = img.src || '';
+        if (src.indexOf('blob:') === 0) {
+          log('Image ' + i + ': BLOB (not converted yet)');
+        } else if (src.indexOf('data:image') === 0) {
+          log('Image ' + i + ': DATA URL (length: ' + src.length + ')');
+        } else {
+          log('Image ' + i + ': External URL');
+        }
+      });
+      updateOutput();
+    }
+    
+    function convertAll() {
+      const images = editor.querySelectorAll('img');
+      let blobCount = 0;
+      images.forEach(img => {
+        const src = img.src || '';
+        if (src.indexOf('blob:') === 0) {
+          blobCount++;
+          convertBlobToDataUrl(img);
+        }
+      });
+      log('Converting ' + blobCount + ' blob URLs...');
+    }
+    
+    function updateOutput() {
+      output.textContent = editor.innerHTML;
+    }
+    
+    // Initial update
+    updateOutput();
+    
+    log('Test page ready - paste or insert image above');
+  </script>
+</body>
+</html>
