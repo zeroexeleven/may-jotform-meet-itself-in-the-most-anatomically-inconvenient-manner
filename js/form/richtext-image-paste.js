@@ -49,8 +49,8 @@
         var panel = document.createElement('div');
         panel.id = 'richtext-debug-panel';
         panel.style.position = 'fixed';
-        panel.style.bottom = '12px';
-        panel.style.right = '12px';
+        panel.style.top = '12px';
+        panel.style.left = '12px';
         panel.style.zIndex = '9999';
         panel.style.fontSize = '11px';
         panel.style.fontFamily = 'monospace';
@@ -87,10 +87,23 @@
         panel.appendChild(body);
         document.body.appendChild(panel);
         debugPanelBody = body;
+        var intro = document.createElement('div');
+        intro.textContent = 'Rich text logs ready';
+        body.appendChild(intro);
         return debugPanelBody;
+    }
+
+    function primeDebugPanel() {
+        if (!debugPanelEnabled) return;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', ensureDebugPanel, { once: true });
+        } else {
+            ensureDebugPanel();
+        }
     }
     
     function init() {
+        primeDebugPanel();
         // Wait for nicEdit to be available
         if (typeof nicEditors === 'undefined') {
             setTimeout(init, 100);

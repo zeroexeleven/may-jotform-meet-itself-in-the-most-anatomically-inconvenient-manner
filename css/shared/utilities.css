@@ -3,18 +3,19 @@
    =========================================== */
 
 #stage .jotform-branding,
-#stage .powered-by-jotform {
-  opacity: 0.5;
+#stage .powered-by-jotform,
+body .jf-branding-footer {
+  display: block !important;
+  margin: 32px auto 12px !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  letter-spacing: 0.02em !important;
+  opacity: 0.28 !important; /* keep visible but subtle */
+  color: rgba(255, 255, 255, 0.65) !important;
 }
 
-/* Soften & push Jotform branding down on the form pages */
-#stage .jotform-branding,
-#stage .powered-by-jotform {
-  display: block !important;
-  margin-top: 40px !important;
-  text-align: center !important;
-  font-size: 10px !important;
-  opacity: 0.18 !important;  /* very faint but still visible */
+body .jf-branding-footer * {
+  color: inherit !important;
 }
 
 /* ===========================================
