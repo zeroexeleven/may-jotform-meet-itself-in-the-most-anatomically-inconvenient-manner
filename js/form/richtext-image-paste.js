@@ -10,6 +10,8 @@
     var pastedImages = {};
     var globalContext = (typeof window !== 'undefined') ? window : {};
     var debugPanelEnabled = (typeof globalContext.RICHTEXT_DEBUG === 'undefined') ? true : !!globalContext.RICHTEXT_DEBUG;
+    var debugPanelAnchors = ['top-left', 'bottom-left'];
+    var currentAnchorIndex = 0;
     var debugPanelBody = null;
     
     function logDebug(message, data) {
@@ -49,8 +51,7 @@
         var panel = document.createElement('div');
         panel.id = 'richtext-debug-panel';
         panel.style.position = 'fixed';
-        panel.style.top = '12px';
-        panel.style.left = '12px';
+        positionPanel(panel);
         panel.style.zIndex = '9999';
         panel.style.fontSize = '11px';
         panel.style.fontFamily = 'monospace';
@@ -78,8 +79,13 @@
         body.style.padding = '6px 8px';
         body.style.display = 'none';
         
-        toggle.addEventListener('click', function() {
+        toggle.addEventListener('click', function(event) {
             var isVisible = body.style.display === 'block';
+            if (event.shiftKey) {
+                currentAnchorIndex = (currentAnchorIndex + 1) % debugPanelAnchors.length;
+                positionPanel(panel);
+                return;
+            }
             body.style.display = isVisible ? 'none' : 'block';
         });
         
@@ -269,12 +275,49 @@
 
     function convertImageElementToDataUrl(imgElement, instance, textareaId) {
         if (!imgElement) return;
+        var src = imgElement.src || '';
+        if (!src) return;
+        if (imgElement.dataset.converting === 'true') return;
+        imgElement.dataset.converting = 'true';
+        var cleanup = function() { delete imgElement.dataset.converting; };
+        var activeInstance = instance || getInstanceFromElement(imgElement);
         
+        var finishWithDataUrl = function(dataUrl) {
+            cleanup();
+            if (!dataUrl) return;
+            applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
+        };
+        
+        if (src.indexOf('blob:') === 0 && typeof fetch === 'function') {
+            fetch(src).then(function(response) {
+                return response.blob();
+            }).then(function(blob) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    finishWithDataUrl(e.target.result);
+                };
+                reader.onerror = function() {
+                    cleanup();
+                    fallbackCanvasConversion(imgElement, textareaId, activeInstance);
+                };
+                reader.readAsDataURL(blob);
+            }).catch(function() {
+                cleanup();
+                fallbackCanvasConversion(imgElement, textareaId, activeInstance);
+            });
+            return;
+        }
+        
+        fallbackCanvasConversion(imgElement, textareaId, activeInstance, cleanup);
+    }
+    
+    function fallbackCanvasConversion(imgElement, textareaId, instance, cleanup) {
         var attemptConversion = function() {
             try {
                 var width = imgElement.naturalWidth || imgElement.width || 1;
                 var height = imgElement.naturalHeight || imgElement.height || 1;
                 if (!width || !height) {
+                    if (typeof cleanup === 'function') cleanup();
                     return;
                 }
                 var canvas = document.createElement('canvas');
@@ -283,12 +326,11 @@
                 var ctx = canvas.getContext('2d');
                 ctx.drawImage(imgElement, 0, 0, width, height);
                 var dataUrl = canvas.toDataURL('image/png');
-                imgElement.src = dataUrl;
-                imgElement.removeAttribute('data-original-src');
-                captureImageData(dataUrl, textareaId);
-                persistEditorContent(instance || getInstanceFromElement(imgElement));
+                if (typeof cleanup === 'function') cleanup();
+                applyDataUrlToImage(imgElement, dataUrl, textareaId, instance);
                 logDebug('Converted inline image', { width: width, height: height });
             } catch (err) {
+                if (typeof cleanup === 'function') cleanup();
                 console.warn('Inline conversion failed, falling back to external capture:', err);
                 logDebug('Inline conversion failed', err && err.message ? err.message : 'conversion error');
                 captureExternalImage(imgElement, textareaId, instance);
@@ -296,14 +338,27 @@
         };
         
         if (!imgElement.complete || !imgElement.naturalWidth) {
-            imgElement.addEventListener('load', function handleLoad() {
+            var handleLoad = function() {
                 imgElement.removeEventListener('load', handleLoad);
                 attemptConversion();
-            });
+            };
+            imgElement.addEventListener('load', handleLoad);
             return;
         }
         
         attemptConversion();
+    }
+    
+    function applyDataUrlToImage(imgElement, dataUrl, textareaId, instance) {
+        if (!dataUrl) return;
+        imgElement.src = dataUrl;
+        imgElement.setAttribute('src', dataUrl);
+        imgElement.style.maxWidth = '100%';
+        imgElement.style.height = 'auto';
+        imgElement.style.display = 'inline-block';
+        imgElement.style.visibility = 'visible';
+        captureImageData(dataUrl, textareaId);
+        persistEditorContent(instance);
     }
     
     function persistEditorContent(instance) {
@@ -312,11 +367,28 @@
         instance._isPersisting = true;
         if (instance.e && instance.e.tagName === 'TEXTAREA') {
             instance.e.value = instance.elm.innerHTML;
-            var evt = document.createEvent('HTMLEvents');
-            evt.initEvent('change', true, false);
-            instance.e.dispatchEvent(evt);
+            triggerFieldUpdate(instance.e);
         }
         instance._isPersisting = false;
+    }
+
+    function triggerFieldUpdate(textarea) {
+        if (!textarea) return;
+        var events = ['input', 'keyup', 'change'];
+        for (var i = 0; i < events.length; i++) {
+            try {
+                var evt;
+                if (typeof Event === 'function') {
+                    evt = new Event(events[i], { bubbles: true, cancelable: true });
+                } else {
+                    evt = document.createEvent('HTMLEvents');
+                    evt.initEvent(events[i], true, true);
+                }
+                textarea.dispatchEvent(evt);
+            } catch (err) {
+                // swallow
+            }
+        }
     }
     
     
