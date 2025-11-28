@@ -68,9 +68,124 @@
             pastedImages[textareaId] = [];
         }
         
+        // Handle paste events
         editorElement.addEventListener('paste', function(event) {
             handlePaste(event, instance, textareaId);
         });
+        
+        // Handle input events (for keyboard insertions including stickers/emojis)
+        editorElement.addEventListener('input', function(event) {
+            handleInput(event, instance, textareaId);
+        });
+        
+        // Handle beforeinput for better capture (modern browsers)
+        if ('onbeforeinput' in editorElement) {
+            editorElement.addEventListener('beforeinput', function(event) {
+                handleBeforeInput(event, instance, textareaId);
+            });
+        }
+    }
+    
+    function handleBeforeInput(event, instance, textareaId) {
+        // Check if inserting content that includes images
+        if (event.inputType === 'insertFromPaste' || 
+            event.inputType === 'insertReplacementText' ||
+            event.inputType === 'insertText') {
+            
+            if (event.dataTransfer) {
+                // Similar to paste handling
+                handlePaste(event, instance, textareaId);
+            }
+        }
+    }
+    
+    function handleInput(event, instance, textareaId) {
+        if (!instance.elm) return;
+        
+        // Look for newly inserted images in the editor
+        setTimeout(function() {
+            var images = instance.elm.querySelectorAll('img:not(.richtext-captured)');
+            
+            for (var i = 0; i < images.length; i++) {
+                var img = images[i];
+                var src = img.src;
+                
+                // Mark as captured to avoid re-processing
+                img.classList.add('richtext-captured');
+                
+                // Process different image sources
+                if (src.indexOf('data:image') === 0) {
+                    // Data URL - store it
+                    captureImageData(src, textareaId);
+                } else if (src.indexOf('http') === 0 || src.indexOf('blob:') === 0) {
+                    // External URL or blob - try to capture
+                    captureExternalImage(img, textareaId);
+                }
+            }
+        }, 100);
+    }
+    
+    function captureImageData(dataUrl, textareaId) {
+        try {
+            var arr = dataUrl.split(',');
+            var mime = arr[0].match(/:(.*?);/)[1];
+            var bstr = atob(arr[1]);
+            var n = bstr.length;
+            var u8arr = new Uint8Array(n);
+            while(n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            
+            var imageData = {
+                dataUrl: dataUrl,
+                size: n,
+                type: mime,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (textareaId && pastedImages[textareaId]) {
+                pastedImages[textareaId].push(imageData);
+                console.log('Image captured for field ' + textareaId + ':', {
+                    count: pastedImages[textareaId].length,
+                    type: mime
+                });
+            }
+        } catch (e) {
+            console.warn('Could not capture image data:', e);
+        }
+    }
+    
+    function captureExternalImage(imgElement, textareaId) {
+        // Try to convert external/blob images to data URLs
+        try {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                try {
+                    var dataUrl = canvas.toDataURL('image/png');
+                    imgElement.src = dataUrl;
+                    captureImageData(dataUrl, textareaId);
+                } catch (e) {
+                    console.warn('Could not convert image to data URL (CORS):', e);
+                }
+            };
+            
+            img.onerror = function() {
+                console.warn('Could not load external image');
+            };
+            
+            img.src = imgElement.src;
+        } catch (e) {
+            console.warn('Could not capture external image:', e);
+        }
     }
     
     function handlePaste(event, instance, textareaId) {
