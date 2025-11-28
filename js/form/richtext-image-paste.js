@@ -1091,8 +1091,11 @@
         
         // Listen for form submit
         form.addEventListener('submit', function(e) {
-            // Check for any blob URLs in rich text editors
+            // Check for any blob URLs, external URLs, or images being converted
             var hasBlobs = false;
+            var hasExternalUrls = false;
+            var hasConverting = false;
+            
             if (window.nicEditors && nicEditors.editors) {
                 var editors = nicEditors.editors;
                 for (var i = 0; i < editors.length; i++) {
@@ -1104,10 +1107,27 @@
                         if (instance.elm) {
                             var images = instance.elm.querySelectorAll('img');
                             for (var k = 0; k < images.length; k++) {
-                                var src = (images[k].src || '').trim();
+                                var img = images[k];
+                                var src = (img.src || '').trim();
+                                
+                                // Check for blob URLs
                                 if (src.indexOf('blob:') === 0) {
                                     hasBlobs = true;
-                                    break;
+                                    logDebug('Found blob URL', { src: src.slice(0, 60) });
+                                }
+                                
+                                // Check for external URLs that need processing
+                                if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
+                                    src.indexOf(WORKER_URL) !== 0 && 
+                                    !img.dataset.imageUploaded && 
+                                    !img.dataset.imageUploading) {
+                                    hasExternalUrls = true;
+                                    logDebug('Found unprocessed external URL', { src: src.slice(0, 60) });
+                                }
+                                
+                                // Check for images currently being converted
+                                if (img.dataset.converting === 'true' || img.dataset.imageUploading === 'true') {
+                                    hasConverting = true;
                                 }
                             }
                         }
@@ -1115,10 +1135,11 @@
                 }
             }
             
-            // If blobs detected, prevent submit and wait for conversion
-            if (hasBlobs) {
+            // If blobs detected or external URLs need processing, prevent submit and wait for conversion
+            if (hasBlobs || hasExternalUrls || hasConverting) {
                 e.preventDefault();
-                logDebug('BLOCKING SUBMIT: Found unconverted blobs');
+                var reason = hasBlobs ? 'unconverted blobs' : (hasExternalUrls ? 'unprocessed external URLs' : 'images still converting');
+                logDebug('BLOCKING SUBMIT: Found ' + reason);
                 
                 // Force aggressive conversion
                 if (window.nicEditors && nicEditors.editors) {
@@ -1130,7 +1151,27 @@
                         for (var j = 0; j < instances.length; j++) {
                             var instance = instances[j];
                             var textareaId = instance.e ? instance.e.id : null;
-                            convertAllImagesToDataUrl(instance, textareaId);
+                            
+                            // Convert all images
+                            if (instance.elm) {
+                                var images = instance.elm.querySelectorAll('img');
+                                for (var k = 0; k < images.length; k++) {
+                                    var img = images[k];
+                                    var src = (img.src || '').trim();
+                                    
+                                    // Process blob URLs
+                                    if (src.indexOf('blob:') === 0) {
+                                        handleInsertedImage(img, instance, textareaId);
+                                    }
+                                    // Process external URLs
+                                    else if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
+                                             src.indexOf(WORKER_URL) !== 0 && 
+                                             !img.dataset.imageUploaded && 
+                                             !img.dataset.imageUploading) {
+                                        handleInsertedImage(img, instance, textareaId);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1140,6 +1181,8 @@
                 var checkAndSubmit = function() {
                     retryCount++;
                     var stillHasBlobs = false;
+                    var stillHasExternalUrls = false;
+                    var stillConverting = false;
                     
                     if (window.nicEditors && nicEditors.editors) {
                         var editors = nicEditors.editors;
@@ -1152,10 +1195,22 @@
                                 if (instance.elm) {
                                     var images = instance.elm.querySelectorAll('img');
                                     for (var k = 0; k < images.length; k++) {
-                                        var src = (images[k].src || '').trim();
+                                        var img = images[k];
+                                        var src = (img.src || '').trim();
+                                        
                                         if (src.indexOf('blob:') === 0) {
                                             stillHasBlobs = true;
-                                            break;
+                                        }
+                                        
+                                        if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
+                                            src.indexOf(WORKER_URL) !== 0 && 
+                                            !img.dataset.imageUploaded && 
+                                            !img.dataset.imageUploading) {
+                                            stillHasExternalUrls = true;
+                                        }
+                                        
+                                        if (img.dataset.converting === 'true' || img.dataset.imageUploading === 'true') {
+                                            stillConverting = true;
                                         }
                                     }
                                 }
@@ -1163,14 +1218,18 @@
                         }
                     }
                     
-                    if (!stillHasBlobs) {
-                        logDebug('All blobs converted, submitting');
+                    if (!stillHasBlobs && !stillHasExternalUrls && !stillConverting) {
+                        logDebug('All images processed, submitting');
                         form.submit();
-                    } else if (retryCount < 10) {
-                        logDebug('Still has blobs, retry ' + retryCount);
+                    } else if (retryCount < 20) {
+                        var status = [];
+                        if (stillHasBlobs) status.push('blobs');
+                        if (stillHasExternalUrls) status.push('external URLs');
+                        if (stillConverting) status.push('converting');
+                        logDebug('Still processing: ' + status.join(', ') + ' (retry ' + retryCount + ')');
                         setTimeout(checkAndSubmit, 500);
                     } else {
-                        logDebug('Timeout waiting for blobs, submitting anyway');
+                        logDebug('Timeout waiting for images, submitting anyway');
                         form.submit();
                     }
                 };
