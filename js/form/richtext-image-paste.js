@@ -60,6 +60,21 @@
         }
     }
     
+    function positionPanel(panel) {
+        var anchor = debugPanelAnchors[currentAnchorIndex];
+        if (anchor === 'top-left') {
+            panel.style.top = '10px';
+            panel.style.left = '10px';
+            panel.style.bottom = 'auto';
+            panel.style.right = 'auto';
+        } else if (anchor === 'bottom-left') {
+            panel.style.bottom = '10px';
+            panel.style.left = '10px';
+            panel.style.top = 'auto';
+            panel.style.right = 'auto';
+        }
+    }
+    
     function ensureDebugPanel() {
         if (!debugPanelEnabled) return null;
         if (debugPanelBody) return debugPanelBody;
