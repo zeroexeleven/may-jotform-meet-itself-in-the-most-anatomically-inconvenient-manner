@@ -232,11 +232,8 @@
     padding: 16px 12px 20px;
   }
   
-  .actions {
-    flex-direction: column;
-  }
-  
   .actions .btn {
-    max-width: none;
+    font-size: 13px;
+    padding: 10px 12px;
   }
 }
