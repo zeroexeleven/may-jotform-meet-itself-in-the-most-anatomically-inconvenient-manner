@@ -7,10 +7,10 @@
 .form-dropdown,
 .form-radio-other-input,
 .form-checkbox-other-input {
-  background: rgba(11, 16, 13, 0.9);
+  background: rgba(11, 16, 13, 0.9) !important;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+  color: #ffffff !important;
   padding: 9px 12px;
   font-size: 15px;
   width: 100%;
