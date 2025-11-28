@@ -32,6 +32,11 @@
   color: #B40E34 !important;
 }
 
+/* Hide exclamation icon in error messages */
+.form-error-message img {
+  display: none !important;
+}
+
 .a11y-error-container:has(.error-list:empty) {
   margin: 0 !important;
   padding: 0 !important;

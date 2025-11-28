@@ -9,7 +9,7 @@
     // Store for pasted images per editor
     var pastedImages = {};
     var globalContext = (typeof window !== 'undefined') ? window : {};
-    var debugPanelEnabled = (typeof globalContext.RICHTEXT_DEBUG === 'undefined') ? true : !!globalContext.RICHTEXT_DEBUG;
+    var debugPanelEnabled = (typeof globalContext.RICHTEXT_DEBUG === 'undefined') ? false : !!globalContext.RICHTEXT_DEBUG;
     var debugPanelAnchors = ['top-left', 'bottom-left'];
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
