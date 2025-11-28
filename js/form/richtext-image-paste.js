@@ -325,30 +325,33 @@
             captureImageData(normalizedSrc, textareaId);
             persistEditorContent(instance);
         } else if (isBlob) {
-            // Force immediate conversion - critical path
-            logDebug('BLOB DETECTED - forcing conversion');
-            // Use fetch to convert blob immediately
-            if (typeof fetch === 'function') {
-                fetch(normalizedSrc).then(function(response) {
-                    return response.blob();
-                }).then(function(blob) {
+            // Force immediate fetch-based conversion
+            fetch(normalizedSrc)
+                .then(function(response) { return response.blob(); })
+                .then(function(blob) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         var dataUrl = e.target.result;
                         img.src = dataUrl;
                         img.setAttribute('src', dataUrl);
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        img.style.display = 'inline-block';
+                        img.style.visibility = 'visible';
                         captureImageData(dataUrl, textareaId);
-                        persistEditorContent(instance);
-                        logDebug('Blob converted via fetch');
+                        
+                        // Force sync to textarea immediately
+                        if (instance && instance.e && instance.e.tagName === 'TEXTAREA') {
+                            instance.e.value = instance.elm.innerHTML;
+                            var evt = new Event('change', { bubbles: true });
+                            instance.e.dispatchEvent(evt);
+                        }
                     };
                     reader.readAsDataURL(blob);
-                }).catch(function(err) {
-                    logDebug('Fetch failed, trying canvas', err.message || 'error');
-                    convertImageElementToDataUrl(img, instance, textareaId);
+                })
+                .catch(function(err) {
+                    console.error('Blob fetch failed:', err);
                 });
-            } else {
-                convertImageElementToDataUrl(img, instance, textareaId);
-            }
         } else if (isRemote) {
             captureExternalImage(img, textareaId, instance);
         } else {
@@ -992,8 +995,8 @@
         
         // Listen for form submit
         form.addEventListener('submit', function(e) {
-            // Force conversion of all remaining blob URLs
-            logDebug('Form submitting, converting remaining blobs');
+            // Check for any blob URLs in rich text editors
+            var hasBlobs = false;
             if (window.nicEditors && nicEditors.editors) {
                 var editors = nicEditors.editors;
                 for (var i = 0; i < editors.length; i++) {
@@ -1002,10 +1005,82 @@
                     if (!instances) continue;
                     for (var j = 0; j < instances.length; j++) {
                         var instance = instances[j];
-                        var textareaId = instance.e ? instance.e.id : null;
-                        convertAllImagesToDataUrl(instance, textareaId);
+                        if (instance.elm) {
+                            var images = instance.elm.querySelectorAll('img');
+                            for (var k = 0; k < images.length; k++) {
+                                var src = (images[k].src || '').trim();
+                                if (src.indexOf('blob:') === 0) {
+                                    hasBlobs = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
+            }
+            
+            // If blobs detected, prevent submit and wait for conversion
+            if (hasBlobs) {
+                e.preventDefault();
+                logDebug('BLOCKING SUBMIT: Found unconverted blobs');
+                
+                // Force aggressive conversion
+                if (window.nicEditors && nicEditors.editors) {
+                    var editors = nicEditors.editors;
+                    for (var i = 0; i < editors.length; i++) {
+                        var editor = editors[i];
+                        var instances = editor.nicInstances;
+                        if (!instances) continue;
+                        for (var j = 0; j < instances.length; j++) {
+                            var instance = instances[j];
+                            var textareaId = instance.e ? instance.e.id : null;
+                            convertAllImagesToDataUrl(instance, textareaId);
+                        }
+                    }
+                }
+                
+                // Wait and retry submit
+                var retryCount = 0;
+                var checkAndSubmit = function() {
+                    retryCount++;
+                    var stillHasBlobs = false;
+                    
+                    if (window.nicEditors && nicEditors.editors) {
+                        var editors = nicEditors.editors;
+                        for (var i = 0; i < editors.length; i++) {
+                            var editor = editors[i];
+                            var instances = editor.nicInstances;
+                            if (!instances) continue;
+                            for (var j = 0; j < instances.length; j++) {
+                                var instance = instances[j];
+                                if (instance.elm) {
+                                    var images = instance.elm.querySelectorAll('img');
+                                    for (var k = 0; k < images.length; k++) {
+                                        var src = (images[k].src || '').trim();
+                                        if (src.indexOf('blob:') === 0) {
+                                            stillHasBlobs = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (!stillHasBlobs) {
+                        logDebug('All blobs converted, submitting');
+                        form.submit();
+                    } else if (retryCount < 10) {
+                        logDebug('Still has blobs, retry ' + retryCount);
+                        setTimeout(checkAndSubmit, 500);
+                    } else {
+                        logDebug('Timeout waiting for blobs, submitting anyway');
+                        form.submit();
+                    }
+                };
+                
+                setTimeout(checkAndSubmit, 300);
+                return false;
             }
             
             // Wait for image uploads if any are in progress
