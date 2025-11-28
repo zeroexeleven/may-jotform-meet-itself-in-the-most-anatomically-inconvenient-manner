@@ -8,34 +8,35 @@
   touch-action: none;
   -webkit-overflow-scrolling: auto;
   padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  margin: 0 !important;
 }
 
 .image-page .image-shell {
-  max-width: 900px;
-  width: calc(100% - 32px);
-  margin: 0 16px;
+  width: 100%;
+  height: 100vh;
+  max-width: none;
   background: rgba(0, 0, 0, 0.7);
-  border-radius: 14px;
-  border: 1px solid var(--border-soft);
-  padding: 12px 18px 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  border-radius: 0;
+  border: none;
+  padding: 20px;
+  box-shadow: none;
   text-align: center;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
   .image-page .image-shell {
-    padding: 8px 12px 12px;
-    width: calc(100% - 24px);
-    margin: 0 12px;
+    padding: 16px 12px;
   }
 }
 
 .image-title {
-  margin-bottom: 10px;
+  margin: 0 0 8px 0;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
@@ -47,14 +48,18 @@
 .image-caption {
   font-size: 13px;
   opacity: 0.85;
-  margin: 0 0 10px;
+  margin: 0 0 12px 0;
+  flex-shrink: 0;
 }
 
 /* Carousel shell */
 
 .carousel {
   position: relative;
-  margin-top: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .carousel-inner {
@@ -62,7 +67,8 @@
   overflow: hidden;
   border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
-  height: clamp(320px, 65vh, 520px);
+  flex: 1;
+  min-height: 0;
   background: rgba(0, 0, 0, 0.3);
   touch-action: none;
 }
@@ -130,11 +136,7 @@
   opacity: 1;
 }
 
-@media (max-width: 640px) {
-  .carousel-inner {
-    height: clamp(280px, 65vh, 420px);
-  }
-}
+
 
 
 
@@ -182,22 +184,26 @@
 }
 
 .slide-caption {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 13px;
   opacity: 0.85;
   text-align: center;
-  height: 4.5em;
+  min-height: 4.5em;
+  max-height: 4.5em;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   overflow: hidden;
   line-height: 1.5;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
   .slide-caption {
-    height: 6em;
+    min-height: 6em;
+    max-height: 6em;
     font-size: 12px;
+    margin-top: 8px;
   }
 }
 
@@ -232,9 +238,7 @@
 
 @media (max-width: 480px) {
   .image-page .image-shell {
-    padding: 8px 10px 10px;
-    width: calc(100% - 20px);
-    margin: 0 10px;
+    padding: 12px 10px;
   }
   
   .carousel-close {
