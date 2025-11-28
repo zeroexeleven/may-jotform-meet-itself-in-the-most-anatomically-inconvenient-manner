@@ -86,10 +86,12 @@
             // Check if it's an image
             if (item.type.indexOf('image') !== -1) {
                 hasImage = true;
-                event.preventDefault();
                 
                 var blob = item.getAsFile();
                 if (blob) {
+                    // Prevent default to avoid any default paste behavior
+                    event.preventDefault();
+                    event.stopPropagation();
                     processImage(blob, instance, textareaId);
                 }
             }
@@ -133,53 +135,87 @@
     function insertImageIntoEditor(instance, dataUrl) {
         if (!instance.elm) return;
         
+        // Focus the editor first to ensure proper insertion
+        instance.elm.focus();
+        
         // Create image element
         var img = document.createElement('img');
         img.src = dataUrl;
         img.style.maxWidth = '100%';
         img.style.height = 'auto';
-        img.style.display = 'block';
-        img.style.margin = '10px 0';
+        img.style.display = 'inline-block';
+        img.style.margin = '5px 0';
+        img.className = 'richtext-pasted-image';
         
-        // Insert at cursor position
+        // Get or create a valid selection/range
         var sel = window.getSelection();
+        var range;
+        
         if (sel.rangeCount > 0) {
-            var range = sel.getRangeAt(0);
-            
-            // Make sure we're in the editor
-            var container = range.commonAncestorContainer;
-            var inEditor = false;
-            var check = container;
-            while (check && check !== document.body) {
-                if (check === instance.elm) {
-                    inEditor = true;
-                    break;
-                }
-                check = check.parentNode;
-            }
-            
-            if (inEditor) {
-                range.deleteContents();
-                range.insertNode(img);
-                
-                // Move cursor after image
-                range.setStartAfter(img);
-                range.setEndAfter(img);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            } else {
-                // Not in editor, append to end
-                instance.elm.appendChild(img);
-            }
+            range = sel.getRangeAt(0);
         } else {
-            // No selection, append to end
-            instance.elm.appendChild(img);
+            // Create a new range at the end of the editor
+            range = document.createRange();
+            range.selectNodeContents(instance.elm);
+            range.collapse(false); // collapse to end
         }
         
-        // Trigger content change
+        // Make sure we're in the editor
+        var container = range.commonAncestorContainer;
+        var inEditor = false;
+        var check = container.nodeType === 3 ? container.parentNode : container;
+        
+        while (check && check !== document.body) {
+            if (check === instance.elm) {
+                inEditor = true;
+                break;
+            }
+            check = check.parentNode;
+        }
+        
+        if (!inEditor) {
+            // If not in editor, just append to the end
+            instance.elm.appendChild(document.createElement('br'));
+            instance.elm.appendChild(img);
+            instance.elm.appendChild(document.createElement('br'));
+        } else {
+            // Insert at current position
+            try {
+                range.deleteContents();
+                
+                // Create a wrapper for better formatting
+                var wrapper = document.createElement('div');
+                wrapper.appendChild(img);
+                
+                range.insertNode(wrapper);
+                
+                // Move cursor after image
+                range.setStartAfter(wrapper);
+                range.setEndAfter(wrapper);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } catch (e) {
+                // Fallback: append to end
+                console.warn('Failed to insert at cursor, appending to end:', e);
+                instance.elm.appendChild(document.createElement('br'));
+                instance.elm.appendChild(img);
+                instance.elm.appendChild(document.createElement('br'));
+            }
+        }
+        
+        // Trigger content update in nicEdit
         if (instance.saveContent) {
             instance.saveContent();
         }
+        
+        // Also trigger change event
+        if (instance.e && instance.e.tagName === 'TEXTAREA') {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('change', true, false);
+            instance.e.dispatchEvent(event);
+        }
+        
+        console.log('Image inserted into editor');
     }
     
     function formatBytes(bytes) {
