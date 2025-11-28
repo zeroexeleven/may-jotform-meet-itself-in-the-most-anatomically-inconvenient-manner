@@ -1148,7 +1148,7 @@
                 var reason = hasBlobs ? 'unconverted blobs' : (hasExternalUrls ? 'unprocessed external URLs' : 'images still converting');
                 logDebug('BLOCKING SUBMIT: Found ' + reason);
                 
-                // Force aggressive conversion
+                // Force aggressive conversion with immediate blob conversion
                 if (window.nicEditors && nicEditors.editors) {
                     var editors = nicEditors.editors;
                     for (var i = 0; i < editors.length; i++) {
@@ -1166,16 +1166,44 @@
                                     var img = images[k];
                                     var src = (img.src || '').trim();
                                     
-                                    // Process blob URLs
+                                    // Process blob URLs - IMMEDIATELY
                                     if (src.indexOf('blob:') === 0) {
-                                        handleInsertedImage(img, instance, textareaId);
+                                        logDebug('Force converting blob on submit', { src: src.slice(0, 60) });
+                                        
+                                        // Remove captured class to force reprocessing
+                                        img.classList.remove('richtext-captured');
+                                        
+                                        // Immediate fetch and convert
+                                        (function(imgEl, instanceRef, tid) {
+                                            fetch(imgEl.src)
+                                                .then(function(response) { return response.blob(); })
+                                                .then(function(blob) {
+                                                    var reader = new FileReader();
+                                                    reader.onload = function(e) {
+                                                        var dataUrl = e.target.result;
+                                                        imgEl.src = dataUrl;
+                                                        imgEl.setAttribute('src', dataUrl);
+                                                        captureImageData(dataUrl, tid);
+                                                        
+                                                        if (IMAGE_UPLOAD_ENABLED) {
+                                                            uploadToImageHost(imgEl, dataUrl, instanceRef);
+                                                        } else {
+                                                            persistEditorContent(instanceRef);
+                                                        }
+                                                    };
+                                                    reader.readAsDataURL(blob);
+                                                })
+                                                .catch(function(err) {
+                                                    logDebug('Force conversion failed', err.message);
+                                                });
+                                        })(img, instance, textareaId);
                                     }
                                     // Process external URLs
                                     else if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
                                              src.indexOf(WORKER_URL) !== 0 && 
                                              !img.dataset.imageUploaded && 
                                              !img.dataset.imageUploading) {
-                                        handleInsertedImage(img, instance, textareaId);
+                                        downloadAndConvertImage(img, src, textareaId, instance);
                                     }
                                 }
                             }
@@ -1225,21 +1253,65 @@
                         }
                     }
                     
-                    if (!stillHasBlobs && !stillHasExternalUrls && !stillConverting) {
+                    if (!stillHasBlobs && !stillHasExternalUrls && !stillConverting && uploadsInProgress === 0) {
                         logDebug('All images processed, submitting');
+                        
+                        // Final sync of all editors
+                        if (window.nicEditors && nicEditors.editors) {
+                            var editors = nicEditors.editors;
+                            for (var i = 0; i < editors.length; i++) {
+                                var editor = editors[i];
+                                var instances = editor.nicInstances;
+                                if (!instances) continue;
+                                for (var j = 0; j < instances.length; j++) {
+                                    var instance = instances[j];
+                                    persistEditorContent(instance);
+                                }
+                            }
+                        }
+                        
                         form.submit();
-                    } else if (retryCount < 20) {
+                    } else if (retryCount < 30) {
                         var status = [];
-                        if (stillHasBlobs) status.push('blobs');
+                        if (stillHasBlobs) status.push(countBlobs() + ' blobs');
                         if (stillHasExternalUrls) status.push('external URLs');
                         if (stillConverting) status.push('converting');
-                        logDebug('Still processing: ' + status.join(', ') + ' (retry ' + retryCount + ')');
+                        if (uploadsInProgress > 0) status.push(uploadsInProgress + ' uploads');
+                        logDebug('Waiting: ' + status.join(', ') + ' (retry ' + retryCount + '/30)');
                         setTimeout(checkAndSubmit, 500);
                     } else {
-                        logDebug('Timeout waiting for images, submitting anyway');
+                        logDebug('⚠ TIMEOUT after 15s - submitting with current state');
+                        
+                        // Log what's still pending
+                        if (stillHasBlobs) logDebug('WARNING: ' + countBlobs() + ' blob URLs remain');
+                        if (uploadsInProgress > 0) logDebug('WARNING: ' + uploadsInProgress + ' uploads incomplete');
+                        
                         form.submit();
                     }
                 };
+                
+                function countBlobs() {
+                    var count = 0;
+                    if (window.nicEditors && nicEditors.editors) {
+                        var editors = nicEditors.editors;
+                        for (var i = 0; i < editors.length; i++) {
+                            var editor = editors[i];
+                            var instances = editor.nicInstances;
+                            if (!instances) continue;
+                            for (var j = 0; j < instances.length; j++) {
+                                var instance = instances[j];
+                                if (instance.elm) {
+                                    var images = instance.elm.querySelectorAll('img');
+                                    for (var k = 0; k < images.length; k++) {
+                                        var src = (images[k].src || '').trim();
+                                        if (src.indexOf('blob:') === 0) count++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return count;
+                }
                 
                 setTimeout(checkAndSubmit, 300);
                 return false;
