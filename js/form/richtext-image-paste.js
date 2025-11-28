@@ -13,6 +13,7 @@
     var debugPanelAnchors = ['top-left', 'bottom-left'];
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
+    var PLACEHOLDER_CHAR = '\u2060'; // word joiner to keep required validation happy
     
     function logDebug(message, data) {
         if (typeof console !== 'undefined' && console.log) {
@@ -30,6 +31,9 @@
             body.removeChild(body.firstChild);
         }
         body.scrollTop = body.scrollHeight;
+        if (body.style.display !== 'block') {
+            body.style.display = 'block';
+        }
     }
     
     function formatDebugData(data) {
@@ -358,7 +362,16 @@
         imgElement.style.display = 'inline-block';
         imgElement.style.visibility = 'visible';
         captureImageData(dataUrl, textareaId);
+        ensureContentHasPlaceholder(instance);
         persistEditorContent(instance);
+    }
+
+    function ensureContentHasPlaceholder(instance) {
+        if (!instance || !instance.elm) return;
+        var text = (instance.elm.textContent || '').replace(new RegExp(PLACEHOLDER_CHAR, 'g'), '').trim();
+        if (text.length === 0) {
+            instance.elm.appendChild(document.createTextNode(PLACEHOLDER_CHAR));
+        }
     }
     
     function persistEditorContent(instance) {
