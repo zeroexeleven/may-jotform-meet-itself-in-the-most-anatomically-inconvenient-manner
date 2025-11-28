@@ -24,8 +24,8 @@
 @media (max-width: 640px) {
   .image-page .image-shell {
     padding: 8px 12px 12px;
-    margin-top: -45px;
-    margin-bottom: -10px;
+    margin-top: calc(-5vh - 10px);
+    margin-bottom: calc(-3vh);
   }
 }
 
@@ -228,8 +228,8 @@
 @media (max-width: 480px) {
   .image-page .image-shell {
     padding: 8px 10px 10px;
-    margin-top: -50px;
-    margin-bottom: -15px;
+    margin-top: calc(-6vh - 10px);
+    margin-bottom: calc(-3vh);
   }
   
   .carousel-close {
