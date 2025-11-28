@@ -14,8 +14,9 @@
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
     
-    // Image upload configuration - disabled for privacy
-    var IMAGE_UPLOAD_ENABLED = false; // Keep as data URLs only
+    // Cloudflare Worker configuration
+    var WORKER_URL = 'https://jotform-image-upload.zeroexeleven.workers.dev'; // Replace after deploying worker
+    var IMAGE_UPLOAD_ENABLED = true; // Set to true after deploying worker
     var uploadQueue = [];
     var uploadsInProgress = 0;
     
@@ -544,6 +545,12 @@
             return;
         }
         
+        if (!WORKER_URL || WORKER_URL === 'YOUR_WORKER_URL') {
+            logDebug('Worker URL not configured, keeping data URL');
+            persistEditorContent(instance);
+            return;
+        }
+        
         // Check if already uploaded
         if (imgElement.dataset.imageUploaded === 'true') {
             return;
@@ -551,7 +558,7 @@
         
         imgElement.dataset.imageUploading = 'true';
         uploadsInProgress++;
-        logDebug('Uploading to Catbox...', { size: Math.round(dataUrl.length / 1024) + 'KB' });
+        logDebug('Uploading to Cloudflare...', { size: Math.round(dataUrl.length / 1024) + 'KB' });
         
         // Convert data URL to blob
         var arr = dataUrl.split(',');
@@ -565,39 +572,37 @@
         var blob = new Blob([u8arr], {type: mime});
         
         var formData = new FormData();
-        formData.append('reqtype', 'fileupload');
-        formData.append('fileToUpload', blob, 'image.png');
+        formData.append('image', blob, 'image.png');
         
-        fetch('https://catbox.moe/user/api.php', {
+        fetch(WORKER_URL + '/upload', {
             method: 'POST',
             body: formData
         })
         .then(function(response) {
-            return response.text();
+            return response.json();
         })
-        .then(function(url) {
+        .then(function(result) {
             uploadsInProgress--;
             delete imgElement.dataset.imageUploading;
             
-            // Catbox returns the URL directly as text
-            if (url && url.indexOf('https://') === 0) {
-                logDebug('Catbox upload success', { url: url });
+            if (result.success && result.url) {
+                logDebug('Cloudflare upload success', { url: result.url });
                 
                 // Replace data URL with hosted URL
-                imgElement.src = url;
-                imgElement.setAttribute('src', url);
+                imgElement.src = result.url;
+                imgElement.setAttribute('src', result.url);
                 imgElement.dataset.imageUploaded = 'true';
                 
                 persistEditorContent(instance);
             } else {
-                logDebug('Catbox upload failed, keeping data URL', { response: url });
+                logDebug('Cloudflare upload failed, keeping data URL', result);
                 persistEditorContent(instance);
             }
         })
         .catch(function(error) {
             uploadsInProgress--;
             delete imgElement.dataset.imageUploading;
-            logDebug('Catbox upload error, keeping data URL', error.message || 'network error');
+            logDebug('Cloudflare upload error, keeping data URL', error.message || 'network error');
             persistEditorContent(instance);
         });
     }
