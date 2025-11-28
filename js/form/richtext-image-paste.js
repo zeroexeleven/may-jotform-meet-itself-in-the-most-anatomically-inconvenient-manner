@@ -175,12 +175,77 @@
                 return result;
             };
         }
+        
+        // Watch for page changes (multi-page forms)
+        // Setup handlers when pages become visible
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    var target = mutation.target;
+                    if (target.classList && target.classList.contains('page-section')) {
+                        // Check if page became visible
+                        var isVisible = target.style.display !== 'none';
+                        if (isVisible) {
+                            logDebug('Page became visible, checking for editors');
+                            
+                            // Find textareas on this page that need nicEdit
+                            var textareas = target.querySelectorAll('textarea[data-richtext="Yes"]');
+                            for (var i = 0; i < textareas.length; i++) {
+                                var textarea = textareas[i];
+                                var fieldId = textarea.id;
+                                
+                                // Check if nicEdit is already initialized
+                                var hasNicEdit = textarea.parentNode.querySelector('.nicEdit-main');
+                                if (!hasNicEdit && window.JotForm && JotForm.setupRichArea) {
+                                    // Extract qid from input_XXX
+                                    var qid = fieldId.replace('input_', '');
+                                    logDebug('Reinitializing nicEdit for field ' + fieldId);
+                                    
+                                    try {
+                                        JotForm.setupRichArea(qid);
+                                    } catch (e) {
+                                        logDebug('Error reinitializing: ' + e.message);
+                                    }
+                                }
+                            }
+                            
+                            setTimeout(setupPasteHandlers, 200);
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Observe all page sections
+        var pageSections = document.querySelectorAll('.page-section');
+        for (var i = 0; i < pageSections.length; i++) {
+            observer.observe(pageSections[i], {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+        }
+        logDebug('Observing ' + pageSections.length + ' page sections');
+        
+        // Also periodically check for new editors (more frequently)
+        setInterval(setupPasteHandlers, 1000);
+        
+        // Extra aggressive check for the first 10 seconds
+        var earlyCheckCount = 0;
+        var earlyCheckInterval = setInterval(function() {
+            setupPasteHandlers();
+            earlyCheckCount++;
+            if (earlyCheckCount >= 20) {
+                clearInterval(earlyCheckInterval);
+            }
+        }, 500);
     }
     
     function setupPasteHandlers() {
         if (!window.nicEditors || !nicEditors.editors) return;
         
         var editors = nicEditors.editors;
+        var newHandlersAdded = 0;
+        
         for (var i = 0; i < editors.length; i++) {
             var editor = editors[i];
             var instances = editor.nicInstances;
@@ -189,12 +254,21 @@
             for (var j = 0; j < instances.length; j++) {
                 var instance = instances[j];
                 if (!instance.elm || instance._pasteHandlerAdded) continue;
+                
+                var textareaId = instance.e ? instance.e.id : 'unknown';
+                logDebug('Setting up handler for ' + textareaId);
+                
                 attachPasteHandler(instance);
                 instance._pasteHandlerAdded = true;
+                newHandlersAdded++;
                 
                 // Scan for existing images in this editor
                 scanExistingImages(instance);
             }
+        }
+        
+        if (newHandlersAdded > 0) {
+            logDebug('Added ' + newHandlersAdded + ' new paste handlers');
         }
     }
     

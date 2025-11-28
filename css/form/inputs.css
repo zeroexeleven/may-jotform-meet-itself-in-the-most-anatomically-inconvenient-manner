@@ -20,6 +20,9 @@
 .form-textarea {
   border-radius: 8px;
   min-height: 100px;
+  max-width: 100% !important;
+  resize: vertical !important;
+  overflow: auto !important;
 }
 
 .form-textbox::placeholder,
