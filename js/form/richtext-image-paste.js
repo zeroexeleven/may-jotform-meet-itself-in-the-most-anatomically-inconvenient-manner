@@ -176,6 +176,40 @@
                 if (!instance.elm || instance._pasteHandlerAdded) continue;
                 attachPasteHandler(instance);
                 instance._pasteHandlerAdded = true;
+                
+                // Scan for existing images in this editor
+                scanExistingImages(instance);
+            }
+        }
+    }
+    
+    function scanExistingImages(instance) {
+        if (!instance || !instance.elm) return;
+        
+        var textareaId = instance.e ? instance.e.id : null;
+        var existingImages = instance.elm.querySelectorAll('img');
+        
+        if (existingImages.length > 0) {
+            logDebug('Found ' + existingImages.length + ' existing images on page load');
+            
+            for (var i = 0; i < existingImages.length; i++) {
+                var img = existingImages[i];
+                var src = (img.src || '').trim();
+                
+                // Process based on type
+                if (src.indexOf('blob:') === 0) {
+                    logDebug('Existing blob image detected', { src: src.slice(0, 60) });
+                    handleInsertedImage(img, instance, textareaId);
+                } else if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
+                           src.indexOf(WORKER_URL) !== 0) {
+                    logDebug('Existing external image detected', { src: src.slice(0, 60) });
+                    handleInsertedImage(img, instance, textareaId);
+                } else if (src.indexOf('data:image') === 0) {
+                    logDebug('Existing data URL detected');
+                    if (IMAGE_UPLOAD_ENABLED) {
+                        uploadToImageHost(img, src, instance);
+                    }
+                }
             }
         }
     }
