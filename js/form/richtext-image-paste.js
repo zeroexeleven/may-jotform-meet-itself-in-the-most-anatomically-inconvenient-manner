@@ -238,11 +238,19 @@
     function convertAllImagesToDataUrl(instance, textareaId) {
         if (!instance || !instance.elm) return;
         var images = instance.elm.querySelectorAll('img');
+        var hasPendingConversions = false;
         for (var i = 0; i < images.length; i++) {
             var img = images[i];
             var src = (img.src || '').trim();
             if (!src || src.indexOf('data:image') === 0) continue;
+            if (img.dataset.converting === 'true') {
+                hasPendingConversions = true;
+                continue;
+            }
             convertImageElementToDataUrl(img, instance, textareaId);
+        }
+        if (hasPendingConversions) {
+            logDebug('Images still converting, will retry persistence');
         }
     }
     
@@ -272,6 +280,7 @@
             captureImageData(normalizedSrc, textareaId);
             persistEditorContent(instance);
         } else if (isBlob) {
+            // Conversion will call persistEditorContent when done
             convertImageElementToDataUrl(img, instance, textareaId);
         } else if (isRemote) {
             captureExternalImage(img, textareaId, instance);
@@ -297,24 +306,46 @@
             applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
         };
         
-        if (src.indexOf('blob:') === 0 && typeof fetch === 'function') {
-            fetch(src).then(function(response) {
-                return response.blob();
-            }).then(function(blob) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    finishWithDataUrl(e.target.result);
-                };
-                reader.onerror = function() {
+        // For blob URLs, try canvas conversion first (synchronous)
+        if (src.indexOf('blob:') === 0) {
+            // Attempt immediate canvas conversion if image is loaded
+            if (imgElement.complete && imgElement.naturalWidth) {
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = imgElement.naturalWidth;
+                    canvas.height = imgElement.naturalHeight;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(imgElement, 0, 0);
+                    var dataUrl = canvas.toDataURL('image/png');
+                    cleanup();
+                    applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
+                    logDebug('Converted blob via canvas (sync)', { width: canvas.width, height: canvas.height });
+                    return;
+                } catch (err) {
+                    logDebug('Sync canvas conversion failed, trying fetch', err.message || 'canvas error');
+                }
+            }
+            
+            // Fallback to fetch if canvas fails or image not loaded
+            if (typeof fetch === 'function') {
+                fetch(src).then(function(response) {
+                    return response.blob();
+                }).then(function(blob) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        finishWithDataUrl(e.target.result);
+                    };
+                    reader.onerror = function() {
+                        cleanup();
+                        fallbackCanvasConversion(imgElement, textareaId, activeInstance);
+                    };
+                    reader.readAsDataURL(blob);
+                }).catch(function() {
                     cleanup();
                     fallbackCanvasConversion(imgElement, textareaId, activeInstance);
-                };
-                reader.readAsDataURL(blob);
-            }).catch(function() {
-                cleanup();
-                fallbackCanvasConversion(imgElement, textareaId, activeInstance);
-            });
-            return;
+                });
+                return;
+            }
         }
         
         fallbackCanvasConversion(imgElement, textareaId, activeInstance, cleanup);
