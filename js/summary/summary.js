@@ -87,6 +87,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Decode \u003C / \u003E just in case it's still escaped
     const decoded = str.replace(/\\u003C/g, "<").replace(/\\u003E/g, ">");
 
+    // If it contains an img tag, it's NOT empty (even if there's no text)
+    if (/<img[^>]*>/i.test(decoded)) {
+      return false;
+    }
+
     const cleaned = decoded
       // strip all tags
       .replace(/<[^>]*>/g, "")
