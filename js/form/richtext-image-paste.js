@@ -118,9 +118,14 @@
                     // Data URL - store it
                     captureImageData(src, textareaId);
                 } else if (src.indexOf('http') === 0 || src.indexOf('blob:') === 0) {
-                    // External URL or blob - try to capture
+                    // External URL or blob - convert to data URL
                     captureExternalImage(img, textareaId);
                 }
+            }
+            
+            // Trigger save to update underlying textarea
+            if (instance.saveContent) {
+                instance.saveContent();
             }
         }, 100);
     }
@@ -157,35 +162,78 @@
     
     function captureExternalImage(imgElement, textareaId) {
         // Try to convert external/blob images to data URLs
+        var originalSrc = imgElement.src;
+        
         try {
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
             
             var img = new Image();
-            img.crossOrigin = 'anonymous';
+            
+            // Don't set crossOrigin for blob URLs
+            if (originalSrc.indexOf('blob:') !== 0) {
+                img.crossOrigin = 'anonymous';
+            }
             
             img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
                 try {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
                     var dataUrl = canvas.toDataURL('image/png');
+                    
+                    // Replace the blob URL with data URL in the editor
                     imgElement.src = dataUrl;
+                    
+                    // Apply styling to ensure it's visible
+                    imgElement.style.maxWidth = '100%';
+                    imgElement.style.height = 'auto';
+                    imgElement.style.display = 'inline-block';
+                    
                     captureImageData(dataUrl, textareaId);
+                    
+                    // Save the updated content
+                    var instance = getInstanceFromElement(imgElement);
+                    if (instance && instance.saveContent) {
+                        instance.saveContent();
+                    }
+                    
+                    console.log('Converted blob/external image to data URL');
                 } catch (e) {
-                    console.warn('Could not convert image to data URL (CORS):', e);
+                    console.warn('Could not convert image to data URL:', e);
                 }
             };
             
             img.onerror = function() {
-                console.warn('Could not load external image');
+                console.warn('Could not load image from:', originalSrc);
             };
             
-            img.src = imgElement.src;
+            img.src = originalSrc;
         } catch (e) {
             console.warn('Could not capture external image:', e);
         }
+    }
+    
+    function getInstanceFromElement(element) {
+        // Find the nicEdit instance for this element
+        if (!window.nicEditors || !nicEditors.editors) return null;
+        
+        var editors = nicEditors.editors;
+        for (var i = 0; i < editors.length; i++) {
+            var editor = editors[i];
+            var instances = editor.nicInstances;
+            
+            if (!instances) continue;
+            
+            for (var j = 0; j < instances.length; j++) {
+                var instance = instances[j];
+                if (instance.elm && instance.elm.contains(element)) {
+                    return instance;
+                }
+            }
+        }
+        return null;
     }
     
     function handlePaste(event, instance, textareaId) {
