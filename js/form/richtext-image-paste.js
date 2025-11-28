@@ -636,16 +636,26 @@
             delete imgElement.dataset.imageUploading;
             
             if (result.success && result.url) {
-                logDebug('Cloudflare upload success', { url: result.url });
+                logDebug('✓ Upload success: ' + result.url);
                 
                 // Replace data URL with hosted URL
                 imgElement.src = result.url;
                 imgElement.setAttribute('src', result.url);
                 imgElement.dataset.imageUploaded = 'true';
                 
+                // Multiple forced syncs to ensure it sticks
                 persistEditorContent(instance);
+                
+                setTimeout(function() {
+                    persistEditorContent(instance);
+                    logDebug('Image persisted to textarea', { url: result.url.slice(0, 60) });
+                }, 100);
+                
+                setTimeout(function() {
+                    persistEditorContent(instance);
+                }, 300);
             } else {
-                logDebug('Cloudflare upload failed, keeping data URL', result);
+                logDebug('✗ Upload failed, keeping data URL', result);
                 persistEditorContent(instance);
             }
         })
@@ -1288,7 +1298,7 @@
                     }
                     
                     if (!stillHasBlobs && !stillHasExternalUrls && !stillConverting && uploadsInProgress === 0) {
-                        logDebug('All images processed, submitting');
+                        logDebug('✓ All images processed, submitting form');
                         
                         // Final sync of all editors
                         if (window.nicEditors && nicEditors.editors) {
@@ -1300,6 +1310,18 @@
                                 for (var j = 0; j < instances.length; j++) {
                                     var instance = instances[j];
                                     persistEditorContent(instance);
+                                    
+                                    // Log what's actually in the textarea
+                                    if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                                        var content = instance.e.value;
+                                        var imgCount = (content.match(/<img/gi) || []).length;
+                                        var workerUrlCount = (content.match(new RegExp(WORKER_URL, 'g')) || []).length;
+                                        logDebug('Final textarea content: ' + imgCount + ' images, ' + workerUrlCount + ' on Cloudflare');
+                                        
+                                        if (imgCount > 0 && workerUrlCount === 0) {
+                                            logDebug('⚠ WARNING: Images present but not on Cloudflare!');
+                                        }
+                                    }
                                 }
                             }
                         }
