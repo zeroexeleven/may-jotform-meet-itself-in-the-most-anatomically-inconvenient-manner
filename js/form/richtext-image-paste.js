@@ -123,35 +123,88 @@
         img.style.height = 'auto';
         img.style.display = 'inline-block';
         
+        var normalizedSrc = (src || '').trim();
+        var isDataUrl = normalizedSrc.indexOf('data:image') === 0;
+        var isBlob = normalizedSrc.indexOf('blob:') === 0;
+        var isRemote = /^https?:/i.test(normalizedSrc);
+        
         // Process based on source type
-        if (src.indexOf('data:image') === 0) {
-            // Data URL - store it
-            captureImageData(src, textareaId);
-            if (instance.saveContent) {
-                instance.saveContent();
-            }
-        } else if (src.indexOf('blob:') === 0 || src.indexOf('http') === 0) {
-            // Blob or external URL - convert to data URL
-            captureExternalImage(img, textareaId);
+        if (isDataUrl) {
+            captureImageData(normalizedSrc, textareaId);
+            persistEditorContent(instance);
+        } else if (isBlob) {
+            convertImageElementToDataUrl(img, instance, textareaId);
+        } else if (isRemote) {
+            captureExternalImage(img, textareaId, instance);
+        } else {
+            // Fallback: attempt in-place conversion
+            convertImageElementToDataUrl(img, instance, textareaId);
         }
     }
     
 
+    function convertImageElementToDataUrl(imgElement, instance, textareaId) {
+        if (!imgElement) return;
+        
+        var attemptConversion = function() {
+            try {
+                var width = imgElement.naturalWidth || imgElement.width || 1;
+                var height = imgElement.naturalHeight || imgElement.height || 1;
+                if (!width || !height) {
+                    return;
+                }
+                var canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(imgElement, 0, 0, width, height);
+                var dataUrl = canvas.toDataURL('image/png');
+                imgElement.src = dataUrl;
+                imgElement.removeAttribute('data-original-src');
+                captureImageData(dataUrl, textareaId);
+                persistEditorContent(instance || getInstanceFromElement(imgElement));
+            } catch (err) {
+                console.warn('Inline conversion failed, falling back to external capture:', err);
+                captureExternalImage(imgElement, textareaId, instance);
+            }
+        };
+        
+        if (!imgElement.complete || !imgElement.naturalWidth) {
+            imgElement.addEventListener('load', function handleLoad() {
+                imgElement.removeEventListener('load', handleLoad);
+                attemptConversion();
+            });
+            return;
+        }
+        
+        attemptConversion();
+    }
+    
+    function persistEditorContent(instance) {
+        if (!instance) return;
+        if (instance.saveContent) {
+            instance.saveContent();
+        }
+        if (instance.e && instance.e.tagName === 'TEXTAREA') {
+            instance.e.value = instance.elm.innerHTML;
+            var evt = document.createEvent('HTMLEvents');
+            evt.initEvent('change', true, false);
+            instance.e.dispatchEvent(evt);
+        }
+    }
+    
     
     function captureImageData(dataUrl, textareaId) {
         try {
             var arr = dataUrl.split(',');
-            var mime = arr[0].match(/:(.*?);/)[1];
-            var bstr = atob(arr[1]);
-            var n = bstr.length;
-            var u8arr = new Uint8Array(n);
-            while(n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
+            var mimeMatch = arr[0].match(/:(.*?);/);
+            var mime = mimeMatch ? mimeMatch[1] : 'image/png';
+            var bstr = atob(arr[1] || '');
+            var size = bstr.length;
             
             var imageData = {
                 dataUrl: dataUrl,
-                size: n,
+                size: size,
                 type: mime,
                 timestamp: new Date().toISOString()
             };
@@ -168,7 +221,7 @@
         }
     }
     
-    function captureExternalImage(imgElement, textareaId) {
+    function captureExternalImage(imgElement, textareaId, instanceRef) {
         // Try to convert external/blob images to data URLs
         var originalSrc = imgElement.src;
         
@@ -213,23 +266,9 @@
                 // Store the image data
                 captureImageData(dataUrl, textareaId);
                 
-                // Force save the updated content multiple times to ensure it sticks
-                var instance = getInstanceFromElement(imgElement);
-                if (instance) {
-                    if (instance.saveContent) {
-                        instance.saveContent();
-                    }
-                    
-                    // Also update the textarea directly
-                    if (instance.e) {
-                        instance.e.value = instance.elm.innerHTML;
-                        
-                        // Trigger change event
-                        var event = document.createEvent('HTMLEvents');
-                        event.initEvent('change', true, false);
-                        instance.e.dispatchEvent(event);
-                    }
-                }
+                // Persist content back to the textarea
+                var activeInstance = instanceRef || getInstanceFromElement(imgElement);
+                persistEditorContent(activeInstance);
                 
                 console.log('Image updated in editor and textarea');
                 
