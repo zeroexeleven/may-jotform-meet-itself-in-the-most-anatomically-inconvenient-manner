@@ -73,62 +73,70 @@
             handlePaste(event, instance, textareaId);
         });
         
-        // Handle input events (for keyboard insertions including stickers/emojis)
-        editorElement.addEventListener('input', function(event) {
-            handleInput(event, instance, textareaId);
+        // Use MutationObserver to detect when images are added to the editor
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                    for (var i = 0; i < mutation.addedNodes.length; i++) {
+                        var node = mutation.addedNodes[i];
+                        
+                        // Check if it's an image
+                        if (node.nodeName === 'IMG') {
+                            handleInsertedImage(node, instance, textareaId);
+                        }
+                        
+                        // Check if it contains images
+                        if (node.querySelectorAll) {
+                            var imgs = node.querySelectorAll('img');
+                            for (var j = 0; j < imgs.length; j++) {
+                                handleInsertedImage(imgs[j], instance, textareaId);
+                            }
+                        }
+                    }
+                }
+            });
         });
         
-        // Handle beforeinput for better capture (modern browsers)
-        if ('onbeforeinput' in editorElement) {
-            editorElement.addEventListener('beforeinput', function(event) {
-                handleBeforeInput(event, instance, textareaId);
-            });
-        }
-    }
-    
-    function handleBeforeInput(event, instance, textareaId) {
-        // Check if inserting content that includes images
-        if (event.inputType === 'insertFromPaste' || 
-            event.inputType === 'insertReplacementText' ||
-            event.inputType === 'insertText') {
-            
-            if (event.dataTransfer) {
-                // Similar to paste handling
-                handlePaste(event, instance, textareaId);
-            }
-        }
-    }
-    
-    function handleInput(event, instance, textareaId) {
-        if (!instance.elm) return;
+        // Start observing
+        observer.observe(editorElement, {
+            childList: true,
+            subtree: true
+        });
         
-        // Look for newly inserted images in the editor
-        setTimeout(function() {
-            var images = instance.elm.querySelectorAll('img:not(.richtext-captured)');
-            
-            for (var i = 0; i < images.length; i++) {
-                var img = images[i];
-                var src = img.src;
-                
-                // Mark as captured to avoid re-processing
-                img.classList.add('richtext-captured');
-                
-                // Process different image sources
-                if (src.indexOf('data:image') === 0) {
-                    // Data URL - store it
-                    captureImageData(src, textareaId);
-                } else if (src.indexOf('http') === 0 || src.indexOf('blob:') === 0) {
-                    // External URL or blob - convert to data URL
-                    captureExternalImage(img, textareaId);
-                }
-            }
-            
-            // Trigger save to update underlying textarea
+        // Store observer reference for cleanup
+        instance._imageObserver = observer;
+    }
+    
+    function handleInsertedImage(img, instance, textareaId) {
+        // Skip if already processed
+        if (img.classList.contains('richtext-captured')) {
+            return;
+        }
+        
+        img.classList.add('richtext-captured');
+        
+        var src = img.src;
+        console.log('Image inserted into editor:', src);
+        
+        // Apply styling to ensure visibility
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'inline-block';
+        
+        // Process based on source type
+        if (src.indexOf('data:image') === 0) {
+            // Data URL - store it
+            captureImageData(src, textareaId);
             if (instance.saveContent) {
                 instance.saveContent();
             }
-        }, 100);
+        } else if (src.indexOf('blob:') === 0 || src.indexOf('http') === 0) {
+            // Blob or external URL - convert to data URL
+            captureExternalImage(img, textareaId);
+        }
     }
+    
+
     
     function captureImageData(dataUrl, textareaId) {
         try {
