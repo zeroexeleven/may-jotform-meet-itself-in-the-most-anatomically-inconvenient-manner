@@ -2,9 +2,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     
-    // CORS headers
+    // CORS headers - allow both GitHub Pages and Jotform domains
+    const origin = request.headers.get('Origin');
+    const allowedOrigins = [
+      'https://zeroexeleven.github.io',
+      'https://form.jotform.com',
+      'https://www.jotform.com'
+    ];
+    
     const corsHeaders = {
-      'Access-Control-Allow-Origin': 'https://zeroexeleven.github.io',
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : 'https://zeroexeleven.github.io',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
