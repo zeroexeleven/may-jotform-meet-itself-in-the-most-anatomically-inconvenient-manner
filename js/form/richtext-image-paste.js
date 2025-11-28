@@ -13,7 +13,6 @@
     var debugPanelAnchors = ['top-left', 'bottom-left'];
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
-    var PLACEHOLDER_CHAR = '\u2060'; // word joiner to keep required validation happy
     
     function logDebug(message, data) {
         if (typeof console !== 'undefined' && console.log) {
@@ -81,7 +80,7 @@
         body.style.maxHeight = '160px';
         body.style.overflow = 'auto';
         body.style.padding = '6px 8px';
-        body.style.display = 'none';
+        body.style.display = 'block';
         
         toggle.addEventListener('click', function(event) {
             var isVisible = body.style.display === 'block';
@@ -105,10 +104,16 @@
 
     function primeDebugPanel() {
         if (!debugPanelEnabled) return;
+        var showPanel = function() {
+            var body = ensureDebugPanel();
+            if (body) {
+                body.style.display = 'block';
+            }
+        };
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', ensureDebugPanel, { once: true });
+            document.addEventListener('DOMContentLoaded', showPanel, { once: true });
         } else {
-            ensureDebugPanel();
+            showPanel();
         }
     }
     
@@ -362,16 +367,7 @@
         imgElement.style.display = 'inline-block';
         imgElement.style.visibility = 'visible';
         captureImageData(dataUrl, textareaId);
-        ensureContentHasPlaceholder(instance);
         persistEditorContent(instance);
-    }
-
-    function ensureContentHasPlaceholder(instance) {
-        if (!instance || !instance.elm) return;
-        var text = (instance.elm.textContent || '').replace(new RegExp(PLACEHOLDER_CHAR, 'g'), '').trim();
-        if (text.length === 0) {
-            instance.elm.appendChild(document.createTextNode(PLACEHOLDER_CHAR));
-        }
     }
     
     function persistEditorContent(instance) {
