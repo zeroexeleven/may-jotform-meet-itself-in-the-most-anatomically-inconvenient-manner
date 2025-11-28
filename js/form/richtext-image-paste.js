@@ -340,11 +340,32 @@
                         img.style.visibility = 'visible';
                         captureImageData(dataUrl, textareaId);
                         
-                        // Force sync to textarea immediately
-                        if (instance && instance.e && instance.e.tagName === 'TEXTAREA') {
-                            instance.e.value = instance.elm.innerHTML;
-                            var evt = new Event('change', { bubbles: true });
-                            instance.e.dispatchEvent(evt);
+                        // Force nicEdit to re-sync from DOM
+                        if (instance) {
+                            // Update the underlying textarea with current editor HTML
+                            if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                                instance.e.value = instance.elm.innerHTML;
+                                
+                                // Trigger all the events to make sure Jotform knows
+                                var events = ['input', 'change', 'keyup'];
+                                for (var i = 0; i < events.length; i++) {
+                                    var evt;
+                                    if (typeof Event === 'function') {
+                                        evt = new Event(events[i], { bubbles: true, cancelable: true });
+                                    } else {
+                                        evt = document.createEvent('HTMLEvents');
+                                        evt.initEvent(events[i], true, true);
+                                    }
+                                    instance.e.dispatchEvent(evt);
+                                }
+                            }
+                            
+                            // Force nicEdit's internal sync
+                            if (typeof instance.saveContent === 'function') {
+                                setTimeout(function() {
+                                    instance.saveContent();
+                                }, 50);
+                            }
                         }
                     };
                     reader.readAsDataURL(blob);
