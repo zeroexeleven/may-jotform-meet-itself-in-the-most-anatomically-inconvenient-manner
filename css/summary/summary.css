@@ -207,6 +207,22 @@
   opacity: 0.8;
 }
 
+/* Button layout */
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.actions .btn {
+  flex: 1;
+  min-width: 140px;
+  max-width: 220px;
+  font-size: 14px;
+}
+
 /* ===========================
    SMALL DEVICES
    =========================== */
@@ -214,5 +230,13 @@
 @media (max-width: 480px) {
   .summary-page .shell {
     padding: 16px 12px 20px;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+  
+  .actions .btn {
+    max-width: none;
   }
 }
