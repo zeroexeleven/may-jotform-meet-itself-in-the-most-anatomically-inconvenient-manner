@@ -172,55 +172,84 @@
         // Try to convert external/blob images to data URLs
         var originalSrc = imgElement.src;
         
-        try {
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            
-            var img = new Image();
-            
-            // Don't set crossOrigin for blob URLs
-            if (originalSrc.indexOf('blob:') !== 0) {
-                img.crossOrigin = 'anonymous';
-            }
-            
-            img.onload = function() {
-                try {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    var dataUrl = canvas.toDataURL('image/png');
-                    
-                    // Replace the blob URL with data URL in the editor
-                    imgElement.src = dataUrl;
-                    
-                    // Apply styling to ensure it's visible
-                    imgElement.style.maxWidth = '100%';
-                    imgElement.style.height = 'auto';
-                    imgElement.style.display = 'inline-block';
-                    
-                    captureImageData(dataUrl, textareaId);
-                    
-                    // Save the updated content
-                    var instance = getInstanceFromElement(imgElement);
-                    if (instance && instance.saveContent) {
+        console.log('Attempting to convert image:', originalSrc);
+        
+        // Create a temporary canvas immediately to prevent the image from being cleaned up
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        
+        // For blob URLs, we need to load and convert immediately before they expire
+        var img = new Image();
+        
+        // Don't set crossOrigin for blob URLs
+        if (originalSrc.indexOf('blob:') !== 0) {
+            img.crossOrigin = 'anonymous';
+        }
+        
+        img.onload = function() {
+            try {
+                // Set canvas dimensions
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                
+                // Draw the image
+                ctx.drawImage(img, 0, 0);
+                
+                // Convert to data URL
+                var dataUrl = canvas.toDataURL('image/png');
+                
+                console.log('Successfully converted to data URL, length:', dataUrl.length);
+                
+                // Replace the blob URL with data URL in the editor IMMEDIATELY
+                imgElement.src = dataUrl;
+                imgElement.setAttribute('src', dataUrl);
+                
+                // Apply styling to ensure it's visible
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.height = 'auto';
+                imgElement.style.display = 'inline-block';
+                imgElement.style.visibility = 'visible';
+                
+                // Store the image data
+                captureImageData(dataUrl, textareaId);
+                
+                // Force save the updated content multiple times to ensure it sticks
+                var instance = getInstanceFromElement(imgElement);
+                if (instance) {
+                    if (instance.saveContent) {
                         instance.saveContent();
                     }
                     
-                    console.log('Converted blob/external image to data URL');
-                } catch (e) {
-                    console.warn('Could not convert image to data URL:', e);
+                    // Also update the textarea directly
+                    if (instance.e) {
+                        instance.e.value = instance.elm.innerHTML;
+                        
+                        // Trigger change event
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', true, false);
+                        instance.e.dispatchEvent(event);
+                    }
                 }
-            };
-            
-            img.onerror = function() {
-                console.warn('Could not load image from:', originalSrc);
-            };
-            
-            img.src = originalSrc;
-        } catch (e) {
-            console.warn('Could not capture external image:', e);
-        }
+                
+                console.log('Image updated in editor and textarea');
+                
+                // Revoke the blob URL to free memory
+                if (originalSrc.indexOf('blob:') === 0) {
+                    setTimeout(function() {
+                        URL.revokeObjectURL(originalSrc);
+                    }, 1000);
+                }
+            } catch (e) {
+                console.error('Failed to convert image to data URL:', e);
+            }
+        };
+        
+        img.onerror = function(e) {
+            console.error('Failed to load image from:', originalSrc, e);
+        };
+        
+        // Load the image immediately
+        img.src = originalSrc;
     }
     
     function getInstanceFromElement(element) {
