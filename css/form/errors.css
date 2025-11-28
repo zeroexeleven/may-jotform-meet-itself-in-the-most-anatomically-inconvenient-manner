@@ -33,8 +33,12 @@
 }
 
 /* Hide exclamation icon in error messages */
-.form-error-message img {
+.form-error-message img,
+.form-error-message img[src*="exclamation"] {
   display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .a11y-error-container:has(.error-list:empty) {
