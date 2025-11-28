@@ -7,11 +7,16 @@
   overflow: hidden;
   touch-action: none;
   -webkit-overflow-scrolling: auto;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .image-page .image-shell {
   max-width: 900px;
-  width: 100%;
+  width: calc(100% - 32px);
+  margin: 0 16px;
   background: rgba(0, 0, 0, 0.7);
   border-radius: 14px;
   border: 1px solid var(--border-soft);
@@ -24,8 +29,8 @@
 @media (max-width: 640px) {
   .image-page .image-shell {
     padding: 8px 12px 12px;
-    margin-top: calc(-5vh - 10px);
-    margin-bottom: calc(-3vh);
+    width: calc(100% - 24px);
+    margin: 0 12px;
   }
 }
 
@@ -228,8 +233,8 @@
 @media (max-width: 480px) {
   .image-page .image-shell {
     padding: 8px 10px 10px;
-    margin-top: calc(-6vh - 10px);
-    margin-bottom: calc(-3vh);
+    width: calc(100% - 20px);
+    margin: 0 10px;
   }
   
   .carousel-close {
