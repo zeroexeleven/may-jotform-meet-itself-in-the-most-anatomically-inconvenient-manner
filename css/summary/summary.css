@@ -143,6 +143,18 @@
   color: #d0d5d2;
 }
 
+/* Images in answers */
+.q-value img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  display: block !important;
+  margin: 8px 0 !important;
+  border-radius: 6px !important;
+  object-fit: contain !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
 /* Tables inside summary – dark theme, responsive */
 
 .answers table {
