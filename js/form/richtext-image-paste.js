@@ -14,8 +14,8 @@
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
     
-    // Image upload configuration - disabled for maximum privacy
-    var IMAGE_UPLOAD_ENABLED = false; // Images embedded as data URLs, no external hosting
+    // Image upload configuration - disabled for privacy
+    var IMAGE_UPLOAD_ENABLED = false; // Keep as data URLs only
     var uploadQueue = [];
     var uploadsInProgress = 0;
     
@@ -327,11 +327,28 @@
         } else if (isBlob) {
             // Force immediate conversion - critical path
             logDebug('BLOB DETECTED - forcing conversion');
-            convertImageElementToDataUrl(img, instance, textareaId);
-            // Retry conversions multiple times
-            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 100);
-            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 500);
-            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 1000);
+            // Use fetch to convert blob immediately
+            if (typeof fetch === 'function') {
+                fetch(normalizedSrc).then(function(response) {
+                    return response.blob();
+                }).then(function(blob) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var dataUrl = e.target.result;
+                        img.src = dataUrl;
+                        img.setAttribute('src', dataUrl);
+                        captureImageData(dataUrl, textareaId);
+                        persistEditorContent(instance);
+                        logDebug('Blob converted via fetch');
+                    };
+                    reader.readAsDataURL(blob);
+                }).catch(function(err) {
+                    logDebug('Fetch failed, trying canvas', err.message || 'error');
+                    convertImageElementToDataUrl(img, instance, textareaId);
+                });
+            } else {
+                convertImageElementToDataUrl(img, instance, textareaId);
+            }
         } else if (isRemote) {
             captureExternalImage(img, textareaId, instance);
         } else {
