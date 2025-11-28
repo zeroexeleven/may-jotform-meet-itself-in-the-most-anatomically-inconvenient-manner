@@ -21,6 +21,15 @@
   color: #d0d5d2 !important;
 }
 
+/* Constrain images in answers to fit container */
+#previewContainer .jf-question-answer img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 8px auto !important;
+  border-radius: 6px !important;
+}
+
 /* Input Table in review */
 #previewContainer .table-grid {
   width: 100% !important;
@@ -100,5 +109,11 @@
     background: rgba(0, 0, 0, 0.55) !important;
     border-radius: 8px !important;
     border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  }
+  
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
   }
 }

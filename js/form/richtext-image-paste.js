@@ -23,6 +23,16 @@
         if (typeof console !== 'undefined' && console.log) {
             console.log('[RichText]', message, data || '');
         }
+        
+        // Show status in page title for mobile debugging
+        if (message.indexOf('blob') !== -1 || message.indexOf('Converted') !== -1) {
+            var original = document.title.split(' [')[0];
+            document.title = original + ' [' + message.slice(0, 30) + ']';
+            setTimeout(function() {
+                document.title = original;
+            }, 3000);
+        }
+        
         if (!debugPanelEnabled) return;
         var body = ensureDebugPanel();
         if (!body) return;
@@ -250,16 +260,17 @@
             instance._conversionPoller = setInterval(function() {
                 if (instance.elm) {
                     var needsConversion = false;
+                    var blobUrls = [];
                     var images = instance.elm.querySelectorAll('img');
                     for (var i = 0; i < images.length; i++) {
                         var src = (images[i].src || '').trim();
                         if (src.indexOf('blob:') === 0) {
                             needsConversion = true;
-                            break;
+                            blobUrls.push(src.slice(0, 60));
                         }
                     }
                     if (needsConversion) {
-                        logDebug('Polling found unconverted blob, converting...');
+                        logDebug('Polling found ' + blobUrls.length + ' unconverted blob(s)', { urls: blobUrls });
                         convertAllImagesToDataUrl(instance, textareaId);
                     }
                 }
@@ -314,8 +325,13 @@
             captureImageData(normalizedSrc, textareaId);
             persistEditorContent(instance);
         } else if (isBlob) {
-            // Conversion will call persistEditorContent when done
+            // Force immediate conversion - critical path
+            logDebug('BLOB DETECTED - forcing conversion');
             convertImageElementToDataUrl(img, instance, textareaId);
+            // Retry conversions multiple times
+            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 100);
+            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 500);
+            setTimeout(function() { convertImageElementToDataUrl(img, instance, textareaId); }, 1000);
         } else if (isRemote) {
             captureExternalImage(img, textareaId, instance);
         } else {
@@ -329,6 +345,8 @@
         if (!imgElement) return;
         var src = imgElement.src || '';
         if (!src) return;
+        // Skip if already converted
+        if (src.indexOf('data:image') === 0) return;
         if (imgElement.dataset.converting === 'true') return;
         imgElement.dataset.converting = 'true';
         var cleanup = function() { delete imgElement.dataset.converting; };
