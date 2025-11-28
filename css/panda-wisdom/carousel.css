@@ -72,6 +72,7 @@
   background: rgba(0, 0, 0, 0.3);
   touch-action: none;
 }
+}
 
 /* Loading spinner */
 .carousel-inner::before {
@@ -217,24 +218,39 @@
 
 @media (max-width: 640px) {
   .slide-caption {
-    min-height: 6em;
-    max-height: 6em;
+    min-height: 2.5em;
+    max-height: none;
     font-size: 12px;
     margin-top: 8px;
+    display: block;
+    overflow: visible;
+    word-break: break-word;
+    white-space: normal;
+    color: #fff;
+    background: none;
   }
 }
 
 @media (max-width: 480px) {
+  .carousel-inner {
+    min-height: 220px;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
   .slide-caption {
     display: block;
-    min-height: unset;
-    max-height: unset;
+    min-height: 2.5em;
+    max-height: none;
     overflow: visible;
     word-break: break-word;
     white-space: normal;
     font-size: 13px;
     margin-top: 8px;
     padding: 0 2px;
+    color: #fff;
+    background: none;
   }
 }
 
