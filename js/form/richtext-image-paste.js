@@ -629,6 +629,11 @@
             body: formData
         })
         .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    throw new Error('HTTP ' + response.status + ': ' + text);
+                });
+            }
             return response.json();
         })
         .then(function(result) {
