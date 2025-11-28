@@ -14,6 +14,11 @@
     var currentAnchorIndex = 0;
     var debugPanelBody = null;
     
+    // Image upload configuration - disabled for maximum privacy
+    var IMAGE_UPLOAD_ENABLED = false; // Images embedded as data URLs, no external hosting
+    var uploadQueue = [];
+    var uploadsInProgress = 0;
+    
     function logDebug(message, data) {
         if (typeof console !== 'undefined' && console.log) {
             console.log('[RichText]', message, data || '');
@@ -308,44 +313,81 @@
         
         // For blob URLs, try canvas conversion first (synchronous)
         if (src.indexOf('blob:') === 0) {
-            // Attempt immediate canvas conversion if image is loaded
-            if (imgElement.complete && imgElement.naturalWidth) {
-                try {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = imgElement.naturalWidth;
-                    canvas.height = imgElement.naturalHeight;
-                    var ctx = canvas.getContext('2d');
-                    ctx.drawImage(imgElement, 0, 0);
-                    var dataUrl = canvas.toDataURL('image/png');
-                    cleanup();
-                    applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
-                    logDebug('Converted blob via canvas (sync)', { width: canvas.width, height: canvas.height });
-                    return;
-                } catch (err) {
-                    logDebug('Sync canvas conversion failed, trying fetch', err.message || 'canvas error');
+            var attemptCanvasConversion = function() {
+                if (imgElement.complete && imgElement.naturalWidth) {
+                    try {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = imgElement.naturalWidth;
+                        canvas.height = imgElement.naturalHeight;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(imgElement, 0, 0);
+                        var dataUrl = canvas.toDataURL('image/png');
+                        cleanup();
+                        applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
+                        logDebug('Converted blob via canvas (sync)', { width: canvas.width, height: canvas.height });
+                        return true;
+                    } catch (err) {
+                        logDebug('Canvas conversion failed', err.message || 'canvas error');
+                        return false;
+                    }
                 }
+                return false;
+            };
+            
+            // Try immediate conversion
+            if (attemptCanvasConversion()) {
+                return;
+            }
+            
+            // Wait for load if not ready
+            if (!imgElement.complete) {
+                logDebug('Image not loaded yet, waiting...');
+                var loadHandler = function() {
+                    imgElement.removeEventListener('load', loadHandler);
+                    if (!attemptCanvasConversion()) {
+                        // If still fails, try fetch
+                        logDebug('Canvas failed after load, trying fetch');
+                        tryFetchConversion();
+                    }
+                };
+                imgElement.addEventListener('load', loadHandler);
+                // Also set a timeout fallback
+                setTimeout(function() {
+                    if (imgElement.dataset.converting === 'true') {
+                        imgElement.removeEventListener('load', loadHandler);
+                        logDebug('Load timeout, trying fetch');
+                        tryFetchConversion();
+                    }
+                }, 2000);
+                return;
             }
             
             // Fallback to fetch if canvas fails or image not loaded
-            if (typeof fetch === 'function') {
-                fetch(src).then(function(response) {
-                    return response.blob();
-                }).then(function(blob) {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        finishWithDataUrl(e.target.result);
-                    };
-                    reader.onerror = function() {
+            var tryFetchConversion = function() {
+                if (typeof fetch === 'function') {
+                    fetch(src).then(function(response) {
+                        return response.blob();
+                    }).then(function(blob) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            finishWithDataUrl(e.target.result);
+                        };
+                        reader.onerror = function() {
+                            cleanup();
+                            fallbackCanvasConversion(imgElement, textareaId, activeInstance);
+                        };
+                        reader.readAsDataURL(blob);
+                    }).catch(function() {
                         cleanup();
                         fallbackCanvasConversion(imgElement, textareaId, activeInstance);
-                    };
-                    reader.readAsDataURL(blob);
-                }).catch(function() {
-                    cleanup();
-                    fallbackCanvasConversion(imgElement, textareaId, activeInstance);
-                });
-                return;
-            }
+                    });
+                    return;
+                }
+                cleanup();
+                fallbackCanvasConversion(imgElement, textareaId, activeInstance);
+            };
+            tryFetchConversion();
+            return;
         }
         
         fallbackCanvasConversion(imgElement, textareaId, activeInstance, cleanup);
@@ -398,7 +440,77 @@
         imgElement.style.display = 'inline-block';
         imgElement.style.visibility = 'visible';
         captureImageData(dataUrl, textareaId);
-        persistEditorContent(instance);
+        
+        // Upload to image host if enabled
+        if (IMAGE_UPLOAD_ENABLED) {
+            uploadToImageHost(imgElement, dataUrl, instance);
+        } else {
+            persistEditorContent(instance);
+        }
+    }
+    
+    function uploadToImageHost(imgElement, dataUrl, instance) {
+        if (!dataUrl || dataUrl.indexOf('data:image') !== 0) {
+            persistEditorContent(instance);
+            return;
+        }
+        
+        // Check if already uploaded
+        if (imgElement.dataset.imageUploaded === 'true') {
+            return;
+        }
+        
+        imgElement.dataset.imageUploading = 'true';
+        uploadsInProgress++;
+        logDebug('Uploading to Catbox...', { size: Math.round(dataUrl.length / 1024) + 'KB' });
+        
+        // Convert data URL to blob
+        var arr = dataUrl.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        var bstr = atob(arr[1]);
+        var n = bstr.length;
+        var u8arr = new Uint8Array(n);
+        while(n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        var blob = new Blob([u8arr], {type: mime});
+        
+        var formData = new FormData();
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', blob, 'image.png');
+        
+        fetch('https://catbox.moe/user/api.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(url) {
+            uploadsInProgress--;
+            delete imgElement.dataset.imageUploading;
+            
+            // Catbox returns the URL directly as text
+            if (url && url.indexOf('https://') === 0) {
+                logDebug('Catbox upload success', { url: url });
+                
+                // Replace data URL with hosted URL
+                imgElement.src = url;
+                imgElement.setAttribute('src', url);
+                imgElement.dataset.imageUploaded = 'true';
+                
+                persistEditorContent(instance);
+            } else {
+                logDebug('Catbox upload failed, keeping data URL', { response: url });
+                persistEditorContent(instance);
+            }
+        })
+        .catch(function(error) {
+            uploadsInProgress--;
+            delete imgElement.dataset.imageUploading;
+            logDebug('Catbox upload error, keeping data URL', error.message || 'network error');
+            persistEditorContent(instance);
+        });
     }
     
     function persistEditorContent(instance) {
@@ -815,6 +927,39 @@
         
         // Listen for form submit
         form.addEventListener('submit', function(e) {
+            // Force conversion of all remaining blob URLs
+            logDebug('Form submitting, converting remaining blobs');
+            if (window.nicEditors && nicEditors.editors) {
+                var editors = nicEditors.editors;
+                for (var i = 0; i < editors.length; i++) {
+                    var editor = editors[i];
+                    var instances = editor.nicInstances;
+                    if (!instances) continue;
+                    for (var j = 0; j < instances.length; j++) {
+                        var instance = instances[j];
+                        var textareaId = instance.e ? instance.e.id : null;
+                        convertAllImagesToDataUrl(instance, textareaId);
+                    }
+                }
+            }
+            
+            // Wait for image uploads if any are in progress
+            if (uploadsInProgress > 0) {
+                e.preventDefault();
+                logDebug('Waiting for ' + uploadsInProgress + ' image uploads...');
+                
+                var waitForUploads = function() {
+                    if (uploadsInProgress === 0) {
+                        logDebug('All uploads complete, submitting form');
+                        form.submit();
+                    } else {
+                        setTimeout(waitForUploads, 500);
+                    }
+                };
+                
+                setTimeout(waitForUploads, 100);
+                return false;
+            }
             // Create hidden input with all pasted images
             var imageDataInput = document.getElementById('richtext_pasted_images');
             if (imageDataInput) {
