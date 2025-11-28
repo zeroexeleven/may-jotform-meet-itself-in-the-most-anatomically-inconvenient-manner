@@ -151,6 +151,12 @@ export default {
       });
     }
     
-    return new Response('Not found', { status: 404, headers: corsHeaders });
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: 'Not found: ' + url.pathname 
+    }), { 
+      status: 404, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 };
