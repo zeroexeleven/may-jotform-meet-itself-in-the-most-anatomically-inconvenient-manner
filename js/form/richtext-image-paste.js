@@ -211,12 +211,23 @@
                 var img = existingImages[i];
                 var src = (img.src || '').trim();
                 
+                // Skip if already uploaded to Cloudflare
+                if (IMAGE_UPLOAD_ENABLED && src.indexOf(WORKER_URL) === 0) {
+                    logDebug('Skipping image already on Cloudflare', { src: src.slice(0, 60) });
+                    img.dataset.imageUploaded = 'true';
+                    continue;
+                }
+                
+                // Skip if already processed
+                if (img.dataset.imageUploaded === 'true' || img.dataset.imageUploading === 'true') {
+                    continue;
+                }
+                
                 // Process based on type
                 if (src.indexOf('blob:') === 0) {
                     logDebug('Existing blob image detected', { src: src.slice(0, 60) });
                     handleInsertedImage(img, instance, textareaId);
-                } else if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src) && 
-                           src.indexOf(WORKER_URL) !== 0) {
+                } else if (IMAGE_UPLOAD_ENABLED && /^https?:/i.test(src)) {
                     logDebug('Existing external image detected', { src: src.slice(0, 60) });
                     handleInsertedImage(img, instance, textareaId);
                 } else if (src.indexOf('data:image') === 0) {
