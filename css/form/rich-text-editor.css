@@ -102,6 +102,60 @@
   line-height: 1.4 !important;
   min-height: 160px !important;
   padding: 6px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Prevent indent (blockquote) from expanding container */
+.nicEdit-main blockquote {
+  margin-left: 20px !important;
+  margin-right: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 0 !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+  max-width: calc(100% - 30px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Nested blockquotes */
+.nicEdit-main blockquote blockquote {
+  max-width: calc(100% - 30px) !important;
+}
+
+/* List styling - bullets stay with text regardless of alignment */
+.nicEdit-main ul,
+.nicEdit-main ol {
+  margin-left: 0 !important;
+  padding-left: 30px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Keep bullets visible and aligned with text */
+.nicEdit-main ul li,
+.nicEdit-main ol li {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  list-style-position: outside !important;
+}
+
+/* Center/right aligned lists - keep bullets on left */
+.nicEdit-main ul[style*="text-align: center"],
+.nicEdit-main ol[style*="text-align: center"],
+.nicEdit-main ul[style*="text-align: right"],
+.nicEdit-main ol[style*="text-align: right"] {
+  padding-left: 30px !important;
+  text-align: left !important;
+}
+
+/* If parent has alignment, keep list formatting sane */
+.nicEdit-main div[style*="text-align"] ul,
+.nicEdit-main div[style*="text-align"] ol,
+.nicEdit-main p[style*="text-align"] ul,
+.nicEdit-main p[style*="text-align"] ol {
+  text-align: left !important;
 }
 
 /* Underlying textarea */
