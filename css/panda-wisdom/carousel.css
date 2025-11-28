@@ -159,6 +159,23 @@
 .carousel-nav.next {
   right: 10px;
 }
+/* Smaller and faded carousel nav buttons on mobile */
+@media (max-width: 480px) {
+  .carousel-nav {
+    padding: 4px 7px;
+    font-size: 14px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.12) !important;
+    box-shadow: none !important;
+    opacity: 0.7;
+    transition: background 0.2s, opacity 0.2s;
+  }
+  .carousel-nav:hover,
+  .carousel-nav:active {
+    background: rgba(0, 0, 0, 0.18) !important;
+    opacity: 0.85;
+  }
+}
 
 /* Dots */
 
