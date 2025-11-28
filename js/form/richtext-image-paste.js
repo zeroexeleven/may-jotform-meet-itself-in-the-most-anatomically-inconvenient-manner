@@ -73,6 +73,8 @@
             handlePaste(event, instance, textareaId);
         });
         
+        patchInstancePersistence(instance, textareaId);
+        
         // Use MutationObserver to detect when images are added to the editor
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
@@ -105,6 +107,42 @@
         
         // Store observer reference for cleanup
         instance._imageObserver = observer;
+    }
+
+    function patchInstancePersistence(instance, textareaId) {
+        if (!instance || instance._richtextPersistencePatched) return;
+        
+        var originalSave = instance.saveContent ? instance.saveContent.bind(instance) : null;
+        
+        instance.saveContent = function() {
+            convertAllImagesToDataUrl(instance, textareaId);
+            if (originalSave) {
+                originalSave();
+            }
+            persistEditorContent(instance);
+        };
+        
+        var editorElement = instance.elm;
+        if (editorElement) {
+            var ensureConversion = function() {
+                convertAllImagesToDataUrl(instance, textareaId);
+            };
+            editorElement.addEventListener('blur', ensureConversion);
+            editorElement.addEventListener('focusout', ensureConversion);
+        }
+        
+        instance._richtextPersistencePatched = true;
+    }
+
+    function convertAllImagesToDataUrl(instance, textareaId) {
+        if (!instance || !instance.elm) return;
+        var images = instance.elm.querySelectorAll('img');
+        for (var i = 0; i < images.length; i++) {
+            var img = images[i];
+            var src = (img.src || '').trim();
+            if (!src || src.indexOf('data:image') === 0) continue;
+            convertImageElementToDataUrl(img, instance, textareaId);
+        }
     }
     
     function handleInsertedImage(img, instance, textareaId) {
