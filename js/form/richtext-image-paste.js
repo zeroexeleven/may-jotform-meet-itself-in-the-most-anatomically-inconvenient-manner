@@ -365,15 +365,25 @@
         if (!instance || !instance.elm) return;
         if (instance._isPersisting) return;
         instance._isPersisting = true;
-        if (instance.e && instance.e.tagName === 'TEXTAREA') {
-            instance.e.value = instance.elm.innerHTML;
-            triggerFieldUpdate(instance.e);
+        try {
+            if (typeof instance.syncContents === 'function') {
+                instance.syncContents();
+            } else if (typeof instance.sync === 'function') {
+                instance.sync();
+            }
+            if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                instance.e.value = instance.elm.innerHTML;
+                triggerFieldUpdate(instance.e);
+            } else {
+                triggerFieldUpdate(instance.elm);
+            }
+        } finally {
+            instance._isPersisting = false;
         }
-        instance._isPersisting = false;
     }
 
-    function triggerFieldUpdate(textarea) {
-        if (!textarea) return;
+    function triggerFieldUpdate(target) {
+        if (!target) return;
         var events = ['input', 'keyup', 'change'];
         for (var i = 0; i < events.length; i++) {
             try {
@@ -384,7 +394,7 @@
                     evt = document.createEvent('HTMLEvents');
                     evt.initEvent(events[i], true, true);
                 }
-                textarea.dispatchEvent(evt);
+                target.dispatchEvent(evt);
             } catch (err) {
                 // swallow
             }
