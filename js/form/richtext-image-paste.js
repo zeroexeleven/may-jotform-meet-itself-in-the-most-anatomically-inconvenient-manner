@@ -701,45 +701,52 @@
     }
     
     function downloadAndConvertImage(imgElement, imageUrl, textareaId, instanceRef) {
-        // Download external image and convert to data URL, then upload to Cloudflare
-        logDebug('Downloading external image', { url: imageUrl.slice(0, 60) });
+        // Use Cloudflare Worker proxy to download external image (bypasses CORS)
+        if (!IMAGE_UPLOAD_ENABLED || !WORKER_URL || WORKER_URL === 'YOUR_WORKER_URL') {
+            logDebug('Worker not configured, leaving external URL as-is');
+            return;
+        }
+        
+        logDebug('Proxying external image via Worker', { url: imageUrl.slice(0, 60) });
         
         // Mark as processing
-        imgElement.dataset.converting = 'true';
+        imgElement.dataset.imageUploading = 'true';
+        uploadsInProgress++;
         
-        fetch(imageUrl)
-            .then(function(response) {
-                if (!response.ok) throw new Error('Failed to fetch: ' + response.status);
-                return response.blob();
-            })
-            .then(function(blob) {
-                logDebug('External image downloaded', { size: Math.round(blob.size / 1024) + 'KB' });
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var dataUrl = e.target.result;
-                    logDebug('External image converted', { size: Math.round(dataUrl.length / 1024) + 'KB' });
-                    delete imgElement.dataset.converting;
-                    
-                    // Don't replace src immediately - upload first
-                    captureImageData(dataUrl, textareaId);
-                    
-                    if (IMAGE_UPLOAD_ENABLED) {
-                        // Upload to Cloudflare - this will replace the src
-                        uploadToImageHost(imgElement, dataUrl, instanceRef);
-                    } else {
-                        // Just use the data URL
-                        imgElement.src = dataUrl;
-                        imgElement.setAttribute('src', dataUrl);
-                        persistEditorContent(instanceRef);
-                    }
-                };
-                reader.readAsDataURL(blob);
-            })
-            .catch(function(err) {
-                delete imgElement.dataset.converting;
-                logDebug('External image download failed', err.message || 'fetch error');
-                // Leave original URL - better than broken image
-            });
+        var formData = new FormData();
+        formData.append('url', imageUrl);
+        
+        fetch(WORKER_URL + '/proxy', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(result) {
+            uploadsInProgress--;
+            delete imgElement.dataset.imageUploading;
+            
+            if (result.success && result.url) {
+                logDebug('External image proxied successfully', { url: result.url });
+                
+                // Replace external URL with hosted URL
+                imgElement.src = result.url;
+                imgElement.setAttribute('src', result.url);
+                imgElement.dataset.imageUploaded = 'true';
+                
+                persistEditorContent(instanceRef);
+            } else {
+                logDebug('External image proxy failed, keeping original URL', result);
+                persistEditorContent(instanceRef);
+            }
+        })
+        .catch(function(error) {
+            uploadsInProgress--;
+            delete imgElement.dataset.imageUploading;
+            logDebug('External image proxy error, keeping original URL', error.message || 'network error');
+            persistEditorContent(instanceRef);
+        });
     }
     
     function captureExternalImage(imgElement, textareaId, instanceRef) {

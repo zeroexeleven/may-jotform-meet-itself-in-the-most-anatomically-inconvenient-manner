@@ -215,35 +215,44 @@
     }
     
     function downloadAndConvert(img, url) {
-      img.dataset.converting = 'true';
+      const workerUrl = workerUrlInput.value.trim();
       
-      fetch(url)
-        .then(response => {
-          if (!response.ok) throw new Error('HTTP ' + response.status);
-          return response.blob();
-        })
-        .then(blob => {
-          log('✓ Downloaded external image: ' + Math.round(blob.size / 1024) + 'KB');
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const dataUrl = e.target.result;
-            log('✓ Converted external image to data URL', 'success');
-            delete img.dataset.converting;
+      if (!enableUploadCheckbox.checked || !workerUrl) {
+        log('⚠ Worker not configured, leaving external URL as-is', 'info');
+        return;
+      }
+      
+      img.dataset.uploading = 'true';
+      uploadInProgress++;
+      log('⬇ Proxying external image via Worker...');
+      
+      const formData = new FormData();
+      formData.append('url', url);
+      
+      fetch(workerUrl + '/proxy', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(result => {
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          
+          if (result.success && result.url) {
+            log('✓ External image proxied: ' + result.url, 'success');
+            img.src = result.url;
+            img.setAttribute('src', result.url);
+            img.dataset.uploaded = 'true';
             img.dataset.processed = 'true';
-            
-            if (enableUploadCheckbox.checked && workerUrlInput.value) {
-              uploadToCloudflare(img, dataUrl);
-            } else {
-              img.src = dataUrl;
-              img.setAttribute('src', dataUrl);
-              updateOutput();
-            }
-          };
-          reader.readAsDataURL(blob);
+            updateOutput();
+          } else {
+            log('✗ Proxy FAILED: ' + JSON.stringify(result), 'error');
+          }
         })
         .catch(err => {
-          delete img.dataset.converting;
-          log('✗ ERROR: External download failed - ' + err.message, 'error');
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          log('✗ Proxy ERROR: ' + err.message, 'error');
         });
     }
     

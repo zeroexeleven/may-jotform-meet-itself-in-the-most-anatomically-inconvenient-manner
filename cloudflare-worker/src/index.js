@@ -14,6 +14,69 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
     
+    // Handle proxy download of external images
+    if (request.method === 'POST' && url.pathname === '/proxy') {
+      try {
+        const formData = await request.formData();
+        const imageUrl = formData.get('url');
+        
+        if (!imageUrl) {
+          return new Response(JSON.stringify({ error: 'No URL provided' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        // Fetch the external image (server-side, no CORS restrictions)
+        const imageResponse = await fetch(imageUrl);
+        
+        if (!imageResponse.ok) {
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'Failed to fetch image: ' + imageResponse.status 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        const imageBlob = await imageResponse.blob();
+        const contentType = imageResponse.headers.get('content-type') || 'image/png';
+        
+        // Generate unique filename
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(7);
+        const ext = contentType.split('/')[1] || 'png';
+        const filename = `${timestamp}-${random}.${ext}`;
+        
+        // Upload to R2
+        await env.IMAGE_BUCKET.put(filename, imageBlob, {
+          httpMetadata: {
+            contentType: contentType
+          }
+        });
+        
+        // Return public URL
+        const hostedUrl = `${url.origin}/image/${filename}`;
+        
+        return new Response(JSON.stringify({ 
+          success: true, 
+          url: hostedUrl 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+        
+      } catch (error) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: error.message 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+    
     // Handle upload
     if (request.method === 'POST' && url.pathname === '/upload') {
       try {
