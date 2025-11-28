@@ -231,14 +231,14 @@
         var originalSave = instance.saveContent ? instance.saveContent.bind(instance) : null;
         
         instance.saveContent = function() {
-            convertAllImagesToDataUrl(instance, textareaId);
+            // ALWAYS read directly from DOM, bypass nicEdit cache
+            if (instance.e && instance.e.tagName === 'TEXTAREA' && instance.elm) {
+                instance.e.value = instance.elm.innerHTML;
+            }
             if (originalSave) {
                 originalSave();
             }
-            // Delay persistence slightly to let conversions complete
-            setTimeout(function() {
-                persistEditorContent(instance);
-            }, 100);
+            persistEditorContent(instance);
         };
         
         var editorElement = instance.elm;
@@ -607,11 +607,18 @@
         if (instance._isPersisting) return;
         instance._isPersisting = true;
         try {
+            // ALWAYS force read from DOM first
+            if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                instance.e.value = instance.elm.innerHTML;
+            }
+            
             if (typeof instance.syncContents === 'function') {
                 instance.syncContents();
             } else if (typeof instance.sync === 'function') {
                 instance.sync();
             }
+            
+            // Force again after sync
             if (instance.e && instance.e.tagName === 'TEXTAREA') {
                 instance.e.value = instance.elm.innerHTML;
                 triggerFieldUpdate(instance.e);
