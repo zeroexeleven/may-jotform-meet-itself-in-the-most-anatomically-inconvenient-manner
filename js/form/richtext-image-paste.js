@@ -225,16 +225,45 @@
             if (originalSave) {
                 originalSave();
             }
-            persistEditorContent(instance);
+            // Delay persistence slightly to let conversions complete
+            setTimeout(function() {
+                persistEditorContent(instance);
+            }, 100);
         };
         
         var editorElement = instance.elm;
         if (editorElement) {
             var ensureConversion = function() {
                 convertAllImagesToDataUrl(instance, textareaId);
+                // Also retry after a delay
+                setTimeout(function() {
+                    convertAllImagesToDataUrl(instance, textareaId);
+                    persistEditorContent(instance);
+                }, 200);
             };
             editorElement.addEventListener('blur', ensureConversion);
             editorElement.addEventListener('focusout', ensureConversion);
+        }
+        
+        // Periodically check for unconverted images
+        if (!instance._conversionPoller) {
+            instance._conversionPoller = setInterval(function() {
+                if (instance.elm) {
+                    var needsConversion = false;
+                    var images = instance.elm.querySelectorAll('img');
+                    for (var i = 0; i < images.length; i++) {
+                        var src = (images[i].src || '').trim();
+                        if (src.indexOf('blob:') === 0) {
+                            needsConversion = true;
+                            break;
+                        }
+                    }
+                    if (needsConversion) {
+                        logDebug('Polling found unconverted blob, converting...');
+                        convertAllImagesToDataUrl(instance, textareaId);
+                    }
+                }
+            }, 1000);
         }
         
         instance._richtextPersistencePatched = true;
@@ -313,8 +342,29 @@
         
         // For blob URLs, try canvas conversion first (synchronous)
         if (src.indexOf('blob:') === 0) {
-            var attemptCanvasConversion = function() {
-                if (imgElement.complete && imgElement.naturalWidth) {
+            // Try immediate canvas conversion
+            if (imgElement.complete && imgElement.naturalWidth) {
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = imgElement.naturalWidth;
+                    canvas.height = imgElement.naturalHeight;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(imgElement, 0, 0);
+                    var dataUrl = canvas.toDataURL('image/png');
+                    cleanup();
+                    applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
+                    logDebug('Converted blob via canvas (sync)', { width: canvas.width, height: canvas.height });
+                    return;
+                } catch (err) {
+                    logDebug('Sync canvas conversion failed', err.message || 'canvas error');
+                }
+            }
+            
+            // Wait for load if not ready
+            if (!imgElement.complete) {
+                logDebug('Image not loaded yet, waiting...');
+                var loadHandler = function() {
+                    imgElement.removeEventListener('load', loadHandler);
                     try {
                         var canvas = document.createElement('canvas');
                         canvas.width = imgElement.naturalWidth;
@@ -324,34 +374,14 @@
                         var dataUrl = canvas.toDataURL('image/png');
                         cleanup();
                         applyDataUrlToImage(imgElement, dataUrl, textareaId, activeInstance);
-                        logDebug('Converted blob via canvas (sync)', { width: canvas.width, height: canvas.height });
-                        return true;
+                        logDebug('Converted blob via canvas (after load)', { width: canvas.width, height: canvas.height });
                     } catch (err) {
-                        logDebug('Canvas conversion failed', err.message || 'canvas error');
-                        return false;
-                    }
-                }
-                return false;
-            };
-            
-            // Try immediate conversion
-            if (attemptCanvasConversion()) {
-                return;
-            }
-            
-            // Wait for load if not ready
-            if (!imgElement.complete) {
-                logDebug('Image not loaded yet, waiting...');
-                var loadHandler = function() {
-                    imgElement.removeEventListener('load', loadHandler);
-                    if (!attemptCanvasConversion()) {
-                        // If still fails, try fetch
-                        logDebug('Canvas failed after load, trying fetch');
+                        logDebug('Canvas failed after load, trying fetch', err.message || 'canvas error');
                         tryFetchConversion();
                     }
                 };
                 imgElement.addEventListener('load', loadHandler);
-                // Also set a timeout fallback
+                // Set a timeout fallback
                 setTimeout(function() {
                     if (imgElement.dataset.converting === 'true') {
                         imgElement.removeEventListener('load', loadHandler);
