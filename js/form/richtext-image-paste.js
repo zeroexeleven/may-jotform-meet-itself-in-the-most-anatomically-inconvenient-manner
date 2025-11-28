@@ -324,15 +324,23 @@
         // Process based on source type
         if (isDataUrl) {
             captureImageData(normalizedSrc, textareaId);
-            persistEditorContent(instance);
+            // Upload data URL to Cloudflare if enabled
+            if (IMAGE_UPLOAD_ENABLED) {
+                uploadToImageHost(img, normalizedSrc, instance);
+            } else {
+                persistEditorContent(instance);
+            }
         } else if (isBlob) {
             // Force immediate fetch-based conversion
+            logDebug('Converting blob URL', { src: normalizedSrc.slice(0, 60) });
             fetch(normalizedSrc)
                 .then(function(response) { return response.blob(); })
                 .then(function(blob) {
+                    logDebug('Blob fetched', { size: Math.round(blob.size / 1024) + 'KB' });
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         var dataUrl = e.target.result;
+                        logDebug('Blob converted to data URL', { size: Math.round(dataUrl.length / 1024) + 'KB' });
                         img.src = dataUrl;
                         img.setAttribute('src', dataUrl);
                         img.style.maxWidth = '100%';
@@ -341,31 +349,36 @@
                         img.style.visibility = 'visible';
                         captureImageData(dataUrl, textareaId);
                         
-                        // Force nicEdit to re-sync from DOM
-                        if (instance) {
-                            // Update the underlying textarea with current editor HTML
-                            if (instance.e && instance.e.tagName === 'TEXTAREA') {
-                                instance.e.value = instance.elm.innerHTML;
-                                
-                                // Trigger all the events to make sure Jotform knows
-                                var events = ['input', 'change', 'keyup'];
-                                for (var i = 0; i < events.length; i++) {
-                                    var evt;
-                                    if (typeof Event === 'function') {
-                                        evt = new Event(events[i], { bubbles: true, cancelable: true });
-                                    } else {
-                                        evt = document.createEvent('HTMLEvents');
-                                        evt.initEvent(events[i], true, true);
+                        // Upload to Cloudflare if enabled
+                        if (IMAGE_UPLOAD_ENABLED) {
+                            uploadToImageHost(img, dataUrl, instance);
+                        } else {
+                            // Force nicEdit to re-sync from DOM
+                            if (instance) {
+                                // Update the underlying textarea with current editor HTML
+                                if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                                    instance.e.value = instance.elm.innerHTML;
+                                    
+                                    // Trigger all the events to make sure Jotform knows
+                                    var events = ['input', 'change', 'keyup'];
+                                    for (var i = 0; i < events.length; i++) {
+                                        var evt;
+                                        if (typeof Event === 'function') {
+                                            evt = new Event(events[i], { bubbles: true, cancelable: true });
+                                        } else {
+                                            evt = document.createEvent('HTMLEvents');
+                                            evt.initEvent(events[i], true, true);
+                                        }
+                                        instance.e.dispatchEvent(evt);
                                     }
-                                    instance.e.dispatchEvent(evt);
                                 }
-                            }
-                            
-                            // Force nicEdit's internal sync
-                            if (typeof instance.saveContent === 'function') {
-                                setTimeout(function() {
-                                    instance.saveContent();
-                                }, 50);
+                                
+                                // Force nicEdit's internal sync
+                                if (typeof instance.saveContent === 'function') {
+                                    setTimeout(function() {
+                                        instance.saveContent();
+                                    }, 50);
+                                }
                             }
                         }
                     };
@@ -373,9 +386,12 @@
                 })
                 .catch(function(err) {
                     console.error('Blob fetch failed:', err);
+                    logDebug('Blob conversion error', err.message || 'fetch failed');
                 });
         } else if (isRemote) {
-            captureExternalImage(img, textareaId, instance);
+            // Download and convert external URLs
+            logDebug('Processing external image', { src: normalizedSrc.slice(0, 60) });
+            downloadAndConvertImage(img, normalizedSrc, textareaId, instance);
         } else {
             // Fallback: attempt in-place conversion
             convertImageElementToDataUrl(img, instance, textareaId);
@@ -684,7 +700,54 @@
         }
     }
     
+    function downloadAndConvertImage(imgElement, imageUrl, textareaId, instanceRef) {
+        // Download external image and convert to data URL, then upload to Cloudflare
+        logDebug('Downloading external image', { url: imageUrl.slice(0, 60) });
+        
+        // Mark as processing
+        imgElement.dataset.converting = 'true';
+        
+        fetch(imageUrl)
+            .then(function(response) {
+                if (!response.ok) throw new Error('Failed to fetch: ' + response.status);
+                return response.blob();
+            })
+            .then(function(blob) {
+                logDebug('External image downloaded', { size: Math.round(blob.size / 1024) + 'KB' });
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var dataUrl = e.target.result;
+                    logDebug('External image converted', { size: Math.round(dataUrl.length / 1024) + 'KB' });
+                    delete imgElement.dataset.converting;
+                    
+                    // Don't replace src immediately - upload first
+                    captureImageData(dataUrl, textareaId);
+                    
+                    if (IMAGE_UPLOAD_ENABLED) {
+                        // Upload to Cloudflare - this will replace the src
+                        uploadToImageHost(imgElement, dataUrl, instanceRef);
+                    } else {
+                        // Just use the data URL
+                        imgElement.src = dataUrl;
+                        imgElement.setAttribute('src', dataUrl);
+                        persistEditorContent(instanceRef);
+                    }
+                };
+                reader.readAsDataURL(blob);
+            })
+            .catch(function(err) {
+                delete imgElement.dataset.converting;
+                logDebug('External image download failed', err.message || 'fetch error');
+                // Leave original URL - better than broken image
+            });
+    }
+    
     function captureExternalImage(imgElement, textareaId, instanceRef) {
+        // Legacy function - redirect to new implementation
+        downloadAndConvertImage(imgElement, imgElement.src, textareaId, instanceRef);
+    }
+    
+    function captureExternalImage_OLD(imgElement, textareaId, instanceRef) {
         // Try to convert external/blob images to data URLs
         var originalSrc = imgElement.src;
         

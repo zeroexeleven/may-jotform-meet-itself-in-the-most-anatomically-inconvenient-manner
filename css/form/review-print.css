@@ -22,12 +22,16 @@
 }
 
 /* Constrain images in answers to fit container */
-#previewContainer .jf-question-answer img {
+#previewContainer .jf-question-answer img,
+#previewContainer img,
+.form-all img {
   max-width: 100% !important;
+  max-height: 400px !important;
   height: auto !important;
   display: block !important;
   margin: 8px auto !important;
   border-radius: 6px !important;
+  object-fit: contain !important;
 }
 
 /* Input Table in review */
