@@ -75,27 +75,99 @@
     
     function handlePaste(event, instance, textareaId) {
         var clipboardData = event.clipboardData || window.clipboardData;
-        if (!clipboardData || !clipboardData.items) return;
+        if (!clipboardData) return;
         
-        var items = clipboardData.items;
         var hasImage = false;
+        var imageBlob = null;
         
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            
-            // Check if it's an image
-            if (item.type.indexOf('image') !== -1) {
-                hasImage = true;
+        // Check for image files first
+        if (clipboardData.items) {
+            var items = clipboardData.items;
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
                 
-                var blob = item.getAsFile();
-                if (blob) {
-                    // Prevent default to avoid any default paste behavior
-                    event.preventDefault();
-                    event.stopPropagation();
-                    processImage(blob, instance, textareaId);
+                // Check if it's an image
+                if (item.type.indexOf('image') !== -1) {
+                    hasImage = true;
+                    imageBlob = item.getAsFile();
+                    if (imageBlob) break;
                 }
             }
         }
+        
+        // Also check for image files in the files array (for some browsers/stickers)
+        if (!hasImage && clipboardData.files && clipboardData.files.length > 0) {
+            for (var j = 0; j < clipboardData.files.length; j++) {
+                var file = clipboardData.files[j];
+                if (file.type.indexOf('image') !== -1) {
+                    hasImage = true;
+                    imageBlob = file;
+                    break;
+                }
+            }
+        }
+        
+        // Check for HTML content with images (some stickers/emojis)
+        if (!hasImage) {
+            var html = clipboardData.getData('text/html');
+            if (html && html.indexOf('<img') !== -1) {
+                // Extract image src from HTML
+                var match = html.match(/<img[^>]+src="([^">]+)"/);
+                if (match && match[1]) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    // Handle image URL
+                    fetchAndProcessImageFromUrl(match[1], instance, textareaId);
+                    return;
+                }
+            }
+        }
+        
+        // Process image blob if found
+        if (hasImage && imageBlob) {
+            event.preventDefault();
+            event.stopPropagation();
+            processImage(imageBlob, instance, textareaId);
+        }
+    }
+    
+    function fetchAndProcessImageFromUrl(url, instance, textareaId) {
+        // If it's a data URL, process directly
+        if (url.indexOf('data:image') === 0) {
+            insertImageIntoEditor(instance, url);
+            
+            // Try to convert to blob for storage
+            try {
+                var arr = url.split(',');
+                var mime = arr[0].match(/:(.*?);/)[1];
+                var bstr = atob(arr[1]);
+                var n = bstr.length;
+                var u8arr = new Uint8Array(n);
+                while(n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                var blob = new Blob([u8arr], {type: mime});
+                
+                var imageData = {
+                    dataUrl: url,
+                    size: blob.size,
+                    type: mime,
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (textareaId && pastedImages[textareaId]) {
+                    pastedImages[textareaId].push(imageData);
+                }
+            } catch (e) {
+                console.warn('Could not convert data URL to blob:', e);
+            }
+            return;
+        }
+        
+        // For external URLs, just insert them directly
+        // Note: Cross-origin images may not work for conversion
+        insertImageIntoEditor(instance, url);
+        console.log('Inserted image from URL:', url);
     }
     
     function processImage(blob, instance, textareaId) {
