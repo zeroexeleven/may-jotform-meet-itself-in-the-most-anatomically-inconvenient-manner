@@ -214,11 +214,13 @@
 
 @media (max-width: 640px) {
   .slide-caption {
-    min-height: 2.5em;
+    min-height: 5em;
     max-height: none;
     font-size: 12px;
     margin-top: 8px;
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
     overflow: visible;
     word-break: break-word;
     white-space: normal;
@@ -236,8 +238,10 @@
     justify-content: center;
   }
   .slide-caption {
-    display: block;
-    min-height: 2.5em;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 6em;
     max-height: none;
     overflow: visible;
     word-break: break-word;
