@@ -6,21 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Scroll to top first to reset position
     window.scrollTo(0, 0);
     
-    // Lock body scroll on mobile
-    document.documentElement.style.position = 'fixed';
-    document.documentElement.style.width = '100%';
-    document.documentElement.style.height = '100%';
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.top = '0';
-    document.documentElement.style.left = '0';
-    
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-    document.body.style.overflow = 'hidden';
-    document.body.style.top = '0';
-    document.body.style.left = '0';
-    
     // Force scroll lock continuously
     const lockScroll = () => {
       window.scrollTo(0, 0);
