@@ -1,4 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Mobile-only: Prevent scroll and zoom
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  
+  if (isMobile) {
+    // Scroll to top first to reset position
+    window.scrollTo(0, 0);
+    
+    // Lock body scroll on mobile
+    document.documentElement.style.position = 'fixed';
+    document.documentElement.style.width = '100%';
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.top = '0';
+    document.documentElement.style.left = '0';
+    
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.top = '0';
+    document.body.style.left = '0';
+    
+    // Force scroll lock continuously
+    const lockScroll = () => {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    };
+    
+    // Lock immediately and on any scroll attempt
+    lockScroll();
+    window.addEventListener('scroll', lockScroll, { passive: false });
+    window.addEventListener('touchmove', lockScroll, { passive: false });
+    
+    // Prevent vertical scroll, allow horizontal swipes in carousel
+    let touchStartY = 0;
+    let touchStartX = 0;
+    
+    document.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', (e) => {
+      const touchY = e.touches[0].clientY;
+      const touchX = e.touches[0].clientX;
+      const deltaY = Math.abs(touchY - touchStartY);
+      const deltaX = Math.abs(touchX - touchStartX);
+      
+      // If in carousel, only allow horizontal movement
+      if (e.target.closest('.carousel-inner')) {
+        if (deltaY > deltaX) {
+          e.preventDefault(); // Prevent vertical scroll
+        }
+      } else {
+        // Outside carousel, prevent all scrolling
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Prevent double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+  }
+  
   // Track loading state
   let firstImageLoaded = false;
   
@@ -33,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // {
     //   src: "https://raw.githubusercontent.com/.../images/another_page.jpeg",
     //   alt: "Photograph of another page from a book by James Norbury",
-    //   caption: "Another page from James Norbury’s book."
+    //   caption: "Another page from James Norbury's book."
     // }
   ];
 
