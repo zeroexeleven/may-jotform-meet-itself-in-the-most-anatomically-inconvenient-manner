@@ -2,72 +2,41 @@
    IMAGE PAGE + CAROUSEL
    =========================== */
 
-body.image-page {
-  padding: 0 !important;
-  margin: 0 !important;
-  display: block !important;
-  align-items: unset !important;
-  justify-content: unset !important;
-}
-
 .image-page {
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   overflow: hidden;
   touch-action: none;
   -webkit-overflow-scrolling: auto;
   padding: 0 !important;
   margin: 0 !important;
-  color-scheme: light dark;
-  forced-color-adjust: none;
-  -webkit-forced-color-adjust: none;
 }
 
 .image-page .image-shell {
   width: 100%;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   max-width: none;
-  background: rgba(0, 0, 0, 0.7) !important;
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 0;
   border: none;
   padding: 20px;
   box-shadow: none;
   text-align: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 640px) {
   .image-page .image-shell {
     padding: 16px 12px;
-    padding-top: 12px;
-    background: rgba(0, 0, 0, 0.7) !important;
-  }
-  
-  .carousel {
-    max-height: calc(100vh - 200px);
-    max-height: calc(100dvh - 200px);
-    min-height: 220px;
   }
 }
 
 .image-title {
   margin: 0 0 8px 0;
   flex-shrink: 0;
-  width: 100%;
-  padding-top: 8px;
 }
 
 @media (max-width: 640px) {
@@ -79,22 +48,18 @@ body.image-page {
 .image-caption {
   font-size: 13px;
   opacity: 0.85;
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
   flex-shrink: 0;
-  width: 100%;
 }
 
 /* Carousel shell */
 
 .carousel {
   position: relative;
-  flex: 1 1 auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 250px;
-  max-height: calc(100vh - 220px);
-  max-height: calc(100dvh - 220px);
-  width: 100%;
+  min-height: 0;
 }
 
 .carousel-inner {
@@ -105,7 +70,7 @@ body.image-page {
   flex: 1;
   min-height: 0;
   background: rgba(0, 0, 0, 0.3);
-  touch-action: none;
+  touch-action: pan-x;
 }
 
 /* Loading spinner */
@@ -249,14 +214,41 @@ body.image-page {
 
 @media (max-width: 640px) {
   .slide-caption {
-    min-height: 2.5em;
+    min-height: 5em;
     max-height: none;
     font-size: 12px;
     margin-top: 8px;
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
     overflow: visible;
     word-break: break-word;
     white-space: normal;
+    color: #fff;
+    background: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-inner {
+    min-height: 220px;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide-caption {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 6em;
+    max-height: none;
+    overflow: visible;
+    word-break: break-word;
+    white-space: normal;
+    font-size: 13px;
+    margin-top: 8px;
+    padding: 0 2px;
     color: #fff;
     background: none;
   }
@@ -294,71 +286,66 @@ body.image-page {
 @media (max-width: 480px) {
   .image-page .image-shell {
     padding: 12px 10px;
-    padding-top: 10px;
-    background: rgba(0, 0, 0, 0.7) !important;
-  }
-  
-  .carousel {
-    max-height: calc(100vh - 180px);
-    max-height: calc(100dvh - 180px);
-    min-height: 200px;
-  }
-  
-  .carousel-inner {
-    min-height: 200px;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
   }
   
   .carousel-close {
     font-size: 22px;
   }
-  
-  .slide-caption {
-    display: block;
-    min-height: 2.5em;
-    max-height: none;
-    overflow: visible;
-    word-break: break-word;
-    white-space: normal;
-    font-size: 12px;
-    margin-top: 8px;
-    padding: 0 2px;
-  }
 }
 
-/* Landscape orientation adjustments */
-@media (max-height: 500px) and (orientation: landscape) {
+/* ===========================
+   MOBILE-SPECIFIC FIXES
+   =========================== */
+
+/* Prevent page scroll/zoom on mobile Safari/Chrome */
+@media (max-width: 768px) {
+  html {
+    position: fixed !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+  
+  body {
+    position: fixed !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    height: 100% !important;
+    overscroll-behavior: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+  
+  .image-page {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overscroll-behavior: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+  
   .image-page .image-shell {
-    padding: 8px 12px;
-    padding-top: 6px;
-  }
-  
-  .image-title {
-    font-size: clamp(18px, 4vw, 24px);
-    margin-bottom: 4px;
-  }
-  
-  .image-caption {
-    font-size: 11px;
-    margin-bottom: 8px;
-  }
-  
-  .carousel {
-    max-height: calc(100vh - 120px);
-    max-height: calc(100dvh - 120px);
-    min-height: 160px;
-  }
-  
-  .carousel-dots {
-    margin-top: 6px;
-  }
-  
-  .slide-caption {
-    font-size: 11px;
-    margin-top: 6px;
-    min-height: 2em;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
+    background: rgba(0, 0, 0, 0.7) !important;
   }
 }
