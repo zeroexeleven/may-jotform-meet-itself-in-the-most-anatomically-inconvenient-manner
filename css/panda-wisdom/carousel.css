@@ -24,19 +24,30 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
   box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 @media (max-width: 640px) {
   .image-page .image-shell {
     padding: 16px 12px;
+    padding-top: 12px;
+  }
+  
+  .carousel {
+    max-height: calc(100vh - 180px);
+    min-height: 250px;
   }
 }
 
 .image-title {
   margin: 0 0 8px 0;
   flex-shrink: 0;
+  width: 100%;
+  padding-top: 8px;
 }
 
 @media (max-width: 640px) {
@@ -48,18 +59,21 @@
 .image-caption {
   font-size: 13px;
   opacity: 0.85;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   flex-shrink: 0;
+  width: 100%;
 }
 
 /* Carousel shell */
 
 .carousel {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 300px;
+  max-height: calc(100vh - 200px);
+  width: 100%;
 }
 
 .carousel-inner {
@@ -71,7 +85,6 @@
   min-height: 0;
   background: rgba(0, 0, 0, 0.3);
   touch-action: none;
-}
 }
 
 /* Loading spinner */
@@ -137,10 +150,6 @@
   opacity: 1;
 }
 
-
-
-
-
 /* Carousel navigation buttons */
 
 .carousel-nav {
@@ -160,6 +169,7 @@
 .carousel-nav.next {
   right: 10px;
 }
+
 /* Smaller and faded carousel nav buttons on mobile */
 @media (max-width: 480px) {
   .carousel-nav {
@@ -231,29 +241,6 @@
   }
 }
 
-@media (max-width: 480px) {
-  .carousel-inner {
-    min-height: 220px;
-    height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .slide-caption {
-    display: block;
-    min-height: 2.5em;
-    max-height: none;
-    overflow: visible;
-    word-break: break-word;
-    white-space: normal;
-    font-size: 13px;
-    margin-top: 8px;
-    padding: 0 2px;
-    color: #fff;
-    background: none;
-  }
-}
-
 /* Close button at top-right */
 
 .carousel-close {
@@ -286,9 +273,70 @@
 @media (max-width: 480px) {
   .image-page .image-shell {
     padding: 12px 10px;
+    padding-top: 10px;
+  }
+  
+  .carousel {
+    max-height: calc(100vh - 160px);
+    min-height: 220px;
+  }
+  
+  .carousel-inner {
+    min-height: 220px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   
   .carousel-close {
     font-size: 22px;
+  }
+  
+  .slide-caption {
+    display: block;
+    min-height: 2.5em;
+    max-height: none;
+    overflow: visible;
+    word-break: break-word;
+    white-space: normal;
+    font-size: 13px;
+    margin-top: 8px;
+    padding: 0 2px;
+    color: #fff;
+    background: none;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .image-page .image-shell {
+    padding: 8px 12px;
+    padding-top: 6px;
+  }
+  
+  .image-title {
+    font-size: clamp(18px, 4vw, 24px);
+    margin-bottom: 4px;
+  }
+  
+  .image-caption {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  
+  .carousel {
+    max-height: calc(100vh - 120px);
+    min-height: 180px;
+  }
+  
+  .carousel-dots {
+    margin-top: 6px;
+  }
+  
+  .slide-caption {
+    font-size: 11px;
+    margin-top: 6px;
+    min-height: 2em;
   }
 }
