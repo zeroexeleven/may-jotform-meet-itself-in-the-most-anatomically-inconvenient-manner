@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Panda Wisdom</title>
+
+  <link rel="stylesheet" href="../css/shared/base.css" />
+  <link rel="stylesheet" href="../css/panda-wisdom/carousel.css" />
+  <link rel="stylesheet" href="../css/shared/buttons.css" />
+  <link rel="stylesheet" href="../css/shared/print.css" />
+  
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "ucfuj92cyf");
+  </script>
+</head>
+
+<body class="image-page">
+  <div class="image-shell">
+    <h1 class="title image-title">Panda Wisdom</h1>
+
+    <p class="image-caption">
+      Excerpts from a book by James Norbury.
+    </p>
+
+    <button class="carousel-close" id="closeImage" type="button" aria-label="Close">
+      ✕
+    </button>
+
+    <div class="carousel" aria-label="Panda wisdom pages">
+      <div class="carousel-inner" id="carouselInner"></div>
+
+      <button class="btn carousel-nav prev" id="prevSlide" type="button" aria-label="Previous page">
+        ‹
+      </button>
+      <button class="btn carousel-nav next" id="nextSlide" type="button" aria-label="Next page">
+        ›
+      </button>
+    
+      <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
+    </div>
+
+    <!-- per-slide caption -->
+    <div class="slide-caption" id="slideCaption"></div>
+  </div>
+
+  <script src="../js/panda-wisdom/panda-wisdom.js"></script>
+</body>
+</html>

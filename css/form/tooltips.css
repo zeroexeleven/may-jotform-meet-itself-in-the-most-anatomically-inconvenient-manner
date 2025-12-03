@@ -1,0 +1,98 @@
+/* ===========================================
+   TOOLTIP
+   =========================================== */
+
+/* Wipe grey wrapper/border */
+.form-description {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark-green bubble */
+.form-description-content {
+  background: #000000 !important;
+  border-radius: 6px !important;
+  color: #f7f7f7 !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  border: 1px rgba(95, 124, 75, 0.7) !important;
+  box-shadow: 0 0 3px 3px rgba(95, 124, 75, 0.28) !important;
+}
+
+/* Desktop: hover tooltip in corner */
+@media screen and (min-width: 481px) {
+  .form-line {
+    position: relative;
+  }
+
+  .form-description {
+    display: none !important;
+    position: absolute !important;
+    top: 10px;
+    right: 16px;
+    max-width: 280px;
+    width: auto;
+    text-align: left !important;
+    z-index: 999;
+  }
+
+  .form-line:hover > .form-description,
+  .form-label:hover + .form-description,
+  .form-description:hover {
+    display: block !important;
+  }
+
+  .form-description-arrow,
+  .form-description-arrow-small {
+    display: none !important;
+  }
+}
+
+/* Mobile: subtitle block under question, no overlay */
+@media screen and (max-width: 480px) {
+
+  /* Never float these clones */
+  div[role="tooltip"],
+  .jf-tooltip,
+  .jf-tooltip-content {
+    display: none !important;
+  }
+
+  .form-line {
+    display: block !important;
+  }
+
+  .form-description {
+    display: block !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 4px 0 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    z-index: auto !important;
+  }
+
+  .form-description-content {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+	background: #000000 !important;
+    border: 1px rgba(95, 124, 75, 0.7) !important;
+	box-shadow: 0 0 3px 3px rgba(95, 124, 75, 0.28) !important;
+  }
+
+  .form-description-arrow,
+  .form-description-arrow-small {
+    display: none !important;
+  }
+}

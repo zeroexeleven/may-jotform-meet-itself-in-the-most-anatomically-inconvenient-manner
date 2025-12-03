@@ -1,0 +1,85 @@
+/* ===========================================
+   INPUTS: TEXT / TEXTAREA / DROPDOWN
+   =========================================== */
+
+.form-textbox,
+.form-textarea,
+.form-dropdown,
+.form-radio-other-input,
+.form-checkbox-other-input {
+  background: rgba(11, 16, 13, 0.9) !important;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  padding: 9px 12px;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  border-radius: 8px;
+  min-height: 100px;
+  max-width: 100% !important;
+  resize: vertical !important;
+  overflow: auto !important;
+}
+
+.form-textbox::placeholder,
+.form-textarea::placeholder {
+  color: #8f9c95;
+}
+
+.form-textbox:focus,
+.form-textarea:focus,
+.form-dropdown:focus {
+  outline: none !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+.form-textarea:hover {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* ===========================================
+   SHORT TEXT INPUT ALIGNMENT / NO BLUE GLOW
+   =========================================== */
+
+.form-input-wide[data-layout="half"] {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+.form-input-wide[data-layout="half"] .form-textbox {
+  width: 100% !important;
+  max-width: 320px !important;
+  margin: 0 auto !important;
+}
+
+.form-input-wide[data-layout="half"] .form-textbox:focus,
+.form-input-wide[data-layout="half"] .form-textbox:hover,
+.form-input-wide[data-layout="half"] .form-textbox:active,
+.form-input-wide[data-layout="half"] .form-textbox:focus-visible {
+  outline: none !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* ===========================================
+   DROPDOWN ARROW
+   =========================================== */
+
+.form-dropdown {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #cfd8d2 50%),
+    linear-gradient(135deg, #cfd8d2 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}

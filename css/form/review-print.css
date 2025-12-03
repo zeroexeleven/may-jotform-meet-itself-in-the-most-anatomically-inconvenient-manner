@@ -1,0 +1,123 @@
+/* ===========================================
+   REVIEW BEFORE SUBMIT – TABLE / FITB FIX
+   =========================================== */
+
+#previewContainer {
+  color: #f7f7f7 !important;
+  font-size: 14px !important;
+}
+
+#previewContainer > ul > li {
+  margin-bottom: 10px !important;
+}
+
+#previewContainer .jf-question-label {
+  font-weight: 600 !important;
+  color: #f7f7f7 !important;
+  margin-bottom: 4px !important;
+}
+
+#previewContainer .jf-question-answer {
+  color: #d0d5d2 !important;
+}
+
+/* Constrain images in answers to fit container */
+#previewContainer .jf-question-answer img,
+#previewContainer img,
+.form-all img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  display: block !important;
+  margin: 8px auto !important;
+  border-radius: 6px !important;
+  object-fit: contain !important;
+}
+
+/* Input Table in review */
+#previewContainer .table-grid {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+}
+
+#previewContainer .table-grid .table-head {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  color: #f7f7f7 !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  vertical-align: top !important;
+  white-space: normal !important;
+}
+
+#previewContainer .table-grid .table-col {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #d0d5d2 !important;
+  vertical-align: middle !important;
+  font-size: 15px !important;
+}
+
+#previewContainer .table-grid tr > .table-col:last-child {
+  text-align: center !important;
+}
+
+/* FITB previews: keep them matching the dark theme */
+#previewContainer .FITB .FITB-inptCont,
+#previewContainer .FITB .FITB-inptCont label {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* ===========================================
+   PRINT STYLES — MATCH REVIEW BACKGROUNDS
+   =========================================== */
+
+@media print {
+  .table-grid {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .table-grid .table-head {
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    padding: 6px 8px !important;
+    background: rgba(0, 0, 0, 0.78) !important;
+    color: #f7f7f7 !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    vertical-align: top !important;
+    white-space: normal !important;
+  }
+
+  .table-grid .table-col {
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    padding: 6px 8px !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+    color: #d0d5d2 !important;
+    vertical-align: middle !important;
+    font-size: 15px !important;
+  }
+
+  .FITB .FITB-inptCont,
+  .FITB .FITB-inptCont label {
+    background: rgba(0, 0, 0, 0.55) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  }
+  
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+  }
+}

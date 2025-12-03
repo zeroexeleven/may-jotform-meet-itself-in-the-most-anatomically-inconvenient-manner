@@ -1,0 +1,182 @@
+/* ===========================================
+   RICH TEXT (nicEdit)
+   =========================================== */
+
+/* Make all nicEdit wrappers respect container width */
+.nicEdit-panelContain,
+.nicEdit-panelContain + div,
+.nicEdit-main {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* >>> key fix: rich text areas that are inside sublabel containers <<< */
+
+/* The wrapper span that holds the toolbar, editor box, textarea and sublabel */
+.form-sub-label-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Both of those inline 642px divs inside the span */
+.form-sub-label-container > div[style*="width"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* icon colors */
+.nicEdit-button {
+  filter: invert(1) brightness(1.8) grayscale(1) !important;
+}
+
+/* Inner editor content */
+.form-sub-label-container .nicEdit-main {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Hide dropdowns etc. and style editor */
+.nicEdit-panelContain {
+  background: transparent !important;
+  border: none !important;
+  margin-bottom: 4px !important;
+}
+
+.nicEdit-panel {
+  margin: 0 !important;
+}
+
+.nicEdit-buttonContain {
+  margin-right: 4px !important;
+}
+
+.nicEdit-button-undefined {
+  background: transparent !important;
+  border: none !important;
+}
+
+.nicEdit-button-undefined:hover {
+  background: rgba(95, 124, 75, 0.25) !important;
+  border-radius: 4px !important;
+}
+
+/* Pressed button state */
+.nicEdit-button-undefined:active {
+  background: rgba(95, 124, 75, 0.5) !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Hide dropdown select UI */
+.nicEdit-selectContain {
+  display: none !important;
+}
+
+/* Hide last five icons */
+.nicEdit-panel .nicEdit-button[style*="background-position: -360px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -378px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -396px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -36px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -18px 0px"] {
+  display: none !important;
+  width: 0px !important;
+}
+
+.nicEdit-buttonContain:has(.nicEdit-button[style*="background-position: -180px 0px"]) { display: none !important; }
+
+/* Editor box softened */
+.nicEdit-panelContain + div {
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 8px !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+}
+
+.nicEdit-main {
+  background: transparent !important;
+  color: #f7f7f7 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  min-height: 160px !important;
+  padding: 6px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Prevent indent (blockquote) from expanding container */
+.nicEdit-main blockquote {
+  margin-left: 20px !important;
+  margin-right: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 0 !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+  max-width: calc(100% - 30px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Nested blockquotes */
+.nicEdit-main blockquote blockquote {
+  max-width: calc(100% - 30px) !important;
+}
+
+/* List styling - bullets stay with text regardless of alignment */
+.nicEdit-main ul,
+.nicEdit-main ol {
+  margin-left: 0 !important;
+  padding-left: 30px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Keep bullets visible and aligned with text */
+.nicEdit-main ul li,
+.nicEdit-main ol li {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  list-style-position: outside !important;
+}
+
+/* Center/right aligned lists - keep bullets on left */
+.nicEdit-main ul[style*="text-align: center"],
+.nicEdit-main ol[style*="text-align: center"],
+.nicEdit-main ul[style*="text-align: right"],
+.nicEdit-main ol[style*="text-align: right"] {
+  padding-left: 30px !important;
+  text-align: left !important;
+}
+
+/* If parent has alignment, keep list formatting sane */
+.nicEdit-main div[style*="text-align"] ul,
+.nicEdit-main div[style*="text-align"] ol,
+.nicEdit-main p[style*="text-align"] ul,
+.nicEdit-main p[style*="text-align"] ol {
+  text-align: left !important;
+}
+
+/* Underlying textarea */
+textarea[data-richtext="Yes"] {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Extra mobile clamp in case anything still tries nonsense */
+@media screen and (max-width: 480px) {
+  .form-input-wide[data-type="control_textarea"],
+  .form-sub-label-container {
+    width: 100% !important;
+  }
+
+  .form-sub-label-container > div[style*="width"],
+  .form-sub-label-container .nicEdit-panelContain + div,
+  .form-sub-label-container .nicEdit-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+}

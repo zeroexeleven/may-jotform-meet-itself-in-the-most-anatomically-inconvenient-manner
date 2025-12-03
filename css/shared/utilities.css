@@ -1,0 +1,32 @@
+/* ===========================================
+   BRANDING
+   =========================================== */
+
+#stage .jotform-branding,
+#stage .powered-by-jotform,
+body .jf-branding-footer {
+  display: block !important;
+  margin: 32px auto 12px !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  letter-spacing: 0.02em !important;
+  opacity: 0.28 !important; /* keep visible but subtle */
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+body .jf-branding-footer * {
+  color: inherit !important;
+}
+
+/* ===========================================
+   HELPER UTILITIES
+   =========================================== */
+
+/* helper "[none_hide]" block */
+.form-line:has(input.form-checkbox[name*="none_hide"]) > .form-label {
+  display: none !important;
+}
+
+.form-line:has(input.form-checkbox[name*="none_hide"]) {
+  margin-top: -10px !important;
+}

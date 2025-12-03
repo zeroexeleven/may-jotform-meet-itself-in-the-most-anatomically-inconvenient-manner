@@ -1,0 +1,142 @@
+/* ===========================================
+   CHECKBOXES
+   =========================================== */
+
+.form-checkbox-item {
+  color: #f2f4f3;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 18px;
+  margin-bottom: 4px;
+}
+
+.form-checkbox-item label {
+  margin-left: 0 !important;
+  color: #f7f7f7 !important;
+}
+
+.form-checkbox {
+  accent-color: #5f7c4b;
+  outline: none !important;
+}
+
+.form-checkbox + label:before {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background-color: transparent;
+}
+
+/* hover */
+.form-checkbox:hover + label:before,
+.form-checkbox:focus + label:before {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* checked */
+.form-checkbox:checked + label:before {
+  background-color: #5f7c4b !important;
+  border-color: #5f7c4b !important;
+}
+
+/* ===========================================
+   RADIO BUTTONS – BOXED
+   =========================================== */
+
+.form-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-radio + label:before,
+.form-radio + label:after {
+  display: none !important;
+}
+
+.form-radio-item {
+  display: block;
+  width: 100%;
+  margin: 4px 0;
+  color: #f2f4f3;
+  font-size: 14px;
+}
+
+.form-radio-item label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f7f7 !important;
+  cursor: pointer;
+}
+
+.form-radio-item:hover label {
+  border-color: #5f7c4b;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.55);
+}
+
+.form-radio:checked + label {
+  background: rgba(95, 124, 75, 0.35);
+  border-color: #5f7c4b;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.75);
+}
+
+/* ===========================================
+   FITB RADIO – MATCH BOXED SINGLE CHOICE
+   =========================================== */
+
+.FITB p {
+  text-align: left;
+  margin: 2px 0 4px !important;
+}
+
+.FITB .FITB-inptCont {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-width: 120px !important;
+  margin: 2px 6px !important;
+}
+
+.FITB input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.FITB input[type="radio"] + label {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #f7f7f7 !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+}
+
+.FITB .FITB-inptCont input.form-textbox {
+  width: auto !important;
+}
+
+.FITB input[type="radio"] + label:hover {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.55) !important;
+}
+
+.FITB input[type="radio"]:checked + label {
+  background: rgba(95, 124, 75, 0.35) !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.75) !important;
+}

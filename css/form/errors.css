@@ -1,0 +1,79 @@
+/* ===========================================
+   ERROR STATES
+   =========================================== */
+
+.form-line-error {
+  border-color: #ff6b6b !important;
+}
+
+/* Apply to ALL devices */
+.form-line-error {
+  position: relative !important;
+  padding-bottom: 33px !important;  /* reserves space for the error */
+  border-color: rgb(111 11 11) !important;  
+}
+
+.form-line-error .form-error-message {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0px !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-error-message {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ffd1d1;
+  border-radius: 6px;
+  font-size: 11px !important;
+  background-color: transparent !important;
+  color: #B40E34 !important;
+}
+
+/* Hide exclamation icon in error messages */
+.form-error-message img,
+.form-error-message img[src*="exclamation"] {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.a11y-error-container:has(.error-list:empty) {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+.error-navigation-inner {
+  display: none !important;
+}
+
+.form-button-error {
+  display: none !important;
+}
+
+.a11y-error-container .error-div {
+  margin: 4px 0 !important;
+}
+
+@media screen and (max-width: 480px) {
+  /* Keep the line itself stable and make room for the error */
+  .form-line-error {
+    position: relative !important;
+    padding-bottom: 30px !important; /* tweak this if error text clips */
+  }
+
+  /* Anchor the error text at the bottom of the line instead of pushing things */
+  .form-line-error .form-error-message {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 3px !important;
+    margin: 0 !important;
+	font-size: 9px !important;
+  }
+}

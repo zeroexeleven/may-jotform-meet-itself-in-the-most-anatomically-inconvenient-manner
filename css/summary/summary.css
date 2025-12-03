@@ -1,0 +1,270 @@
+/* ===========================
+   SUMMARY PAGE
+   =========================== */
+
+.summary-page .shell {
+  max-width: 900px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, var(--accent-main) 50%, rgba(0, 0, 0, 0.8) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  padding: 20px 18px 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7),
+              0 0 20px rgba(95, 124, 75, 0.25);
+  text-align: left;
+}
+
+.summary-page .title {
+  text-align: center;
+  text-shadow: var(--text-shadow-strong);
+  margin-bottom: 6px;
+  font-size: clamp(28px, 6vw, 42px);
+  font-weight: 600;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.summary-page .title::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-main), transparent);
+  opacity: 0.6;
+}
+
+.summary-page .subtitle {
+  margin: 0 0 8px;
+  font-weight: 300;
+  text-shadow: var(--text-shadow-strong);
+  text-align: center;
+  font-size: clamp(14px, 3vw, 18px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.meta {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.85;
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
+  position: relative;
+}
+
+.meta::before,
+.meta::after {
+  content: '✦';
+  display: inline-block;
+  margin: 0 8px;
+  color: var(--accent-main);
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+/* Group header elements together visually */
+.summary-page .title {
+  padding: 16px 20px 12px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.48));
+  border-top: 1px solid rgba(95, 124, 75, 0.3);
+}
+
+.summary-page .subtitle {
+  padding: 6px 20px 0px;
+  background: rgba(0, 0, 0, 0.42);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6),
+              0 0 15px rgba(95, 124, 75, 0.1);
+}
+
+.summary-page .meta {
+  padding: 4px 20px 14px;
+  margin-bottom: 20px;
+}
+
+/* Outer answers container: no inner scrollbars */
+.answers {
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  padding: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+/* Each answer row styled like form cards */
+.answer-row {
+  padding: 10px 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), var(--accent-main) 50%, rgba(0, 0, 0, 0.6)) 1;
+  border-image-slice: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.answer-row:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 6px 16px rgba(95, 124, 75, 0.3),
+              0 2px 8px rgba(0, 0, 0, 0.5),
+              -2px 0 10px rgba(95, 124, 75, 0.2);
+}
+
+.q-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #f7f7f7;
+}
+
+.q-value {
+  font-size: 13px;
+  opacity: 0.9;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #d0d5d2;
+}
+
+/* Preserve inline styles from rich text content */
+.q-value > div,
+.q-value > p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure text-align and other inline styles are respected */
+.q-value [style*="text-align"] {
+  display: block;
+}
+
+/* Images in answers */
+.q-value img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  /* Use inline-block instead of block to respect text-align */
+  display: inline-block !important;
+  margin: 8px auto !important;
+  border-radius: 6px !important;
+  object-fit: contain !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  vertical-align: middle !important;
+}
+
+/* For centered images, ensure the container respects alignment */
+.q-value div[style*="text-align: center"] img,
+.q-value p[style*="text-align: center"] img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Tables inside summary – dark theme, responsive */
+
+.answers table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  /* IMPORTANT: let browser decide column widths */
+  /* table-layout: fixed;  <-- remove this */
+  background: rgba(0, 0, 0, 0.55) !important;
+  margin-top: 4px !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+}
+
+.answers thead,
+.answers tr:first-child {
+  background: rgba(0, 0, 0, 0.78) !important;
+}
+
+.answers th,
+.answers td {
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  color: #f7f7f7 !important;
+  background: transparent !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+/* Let browser auto-size columns based on content */
+
+.answers th:first-child,
+.answers td:first-child {
+  /* Remove fixed width, let content determine */
+  min-width: 200px;
+}
+
+.answers th:not(:first-child),
+.answers td:not(:first-child) {
+  /* Keep emoji/short answer columns compact */
+  min-width: 80px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Hide or minimize empty table cells */
+.answers td:empty {
+  padding: 2px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.status {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* Button layout */
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.actions .btn {
+  flex: 1;
+  min-width: 140px;
+  max-width: 220px;
+  font-size: 14px;
+}
+
+/* ===========================
+   SMALL DEVICES
+   =========================== */
+
+@media (max-width: 480px) {
+  .summary-page .shell {
+    padding: 16px 12px 20px;
+  }
+  
+  .actions .btn {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}

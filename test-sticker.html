@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Image Upload Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .config {
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 2px solid #5f7c4b;
+    }
+    .config input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      background: #333;
+      border: 1px solid #666;
+      color: #fff;
+      font-family: monospace;
+    }
+    #editor {
+      border: 2px solid #5f7c4b;
+      padding: 10px;
+      min-height: 200px;
+      background: #2a2a2a;
+      margin: 20px 0;
+    }
+    #editor img {
+      max-width: 100%;
+      max-height: 400px;
+      height: auto;
+      display: inline-block;
+      margin: 8px;
+    }
+    #output {
+      border: 2px solid #666;
+      padding: 10px;
+      background: #333;
+      word-break: break-all;
+      margin: 20px 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    button {
+      background: #5f7c4b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 5px;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #7a9c61;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 10px;
+      margin: 5px 0;
+      background: #444;
+      border-left: 4px solid #5f7c4b;
+      font-size: 12px;
+    }
+    .error {
+      border-left-color: #c44;
+    }
+    .success {
+      border-left-color: #4c4;
+    }
+    #statusContainer {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🖼️ Local Image Upload Test</h1>
+  
+  <div class="config">
+    <h3>Configuration</h3>
+    <label>Worker URL (leave empty to test without upload):</label>
+    <input type="text" id="workerUrl" placeholder="https://your-worker.workers.dev" value="">
+    <br>
+    <label>
+      <input type="checkbox" id="enableUpload"> Enable Cloudflare Upload
+    </label>
+  </div>
+  
+  <p>Test image handling:</p>
+  <ul>
+    <li>Paste images (Ctrl+V or right-click paste)</li>
+    <li>Insert stickers from mobile keyboard</li>
+    <li>Paste external URLs: <code>&lt;img src="https://example.com/image.jpg"&gt;</code></li>
+  </ul>
+  
+  <div id="editor" contenteditable="true">
+    Click here and paste/insert image...
+  </div>
+  
+  <button onclick="checkImages()">📋 Check Images</button>
+  <button onclick="processAllImages()">🔄 Process All Images</button>
+  <button onclick="clearEditor()">🗑️ Clear Editor</button>
+  <button onclick="simulateSubmit()" id="submitBtn">✅ Simulate Submit</button>
+  
+  <h3>Status Log:</h3>
+  <div id="statusContainer"></div>
+  
+  <h3>Current HTML:</h3>
+  <div id="output"></div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const statusContainer = document.getElementById('statusContainer');
+    const output = document.getElementById('output');
+    const workerUrlInput = document.getElementById('workerUrl');
+    const enableUploadCheckbox = document.getElementById('enableUpload');
+    
+    let uploadInProgress = 0;
+    
+    function log(msg, type = 'info') {
+      const div = document.createElement('div');
+      div.className = 'status ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+      div.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+      statusContainer.insertBefore(div, statusContainer.firstChild);
+      console.log(msg);
+      
+      // Keep only last 50 messages
+      while (statusContainer.children.length > 50) {
+        statusContainer.removeChild(statusContainer.lastChild);
+      }
+    }
+    
+    // Watch for images being added
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeName === 'IMG') {
+            handleImage(node);
+          }
+          if (node.querySelectorAll) {
+            node.querySelectorAll('img').forEach(handleImage);
+          }
+        });
+      });
+      updateOutput();
+    });
+    
+    observer.observe(editor, { childList: true, subtree: true });
+    
+    function handleImage(img) {
+      const src = img.src || '';
+      
+      if (img.dataset.processed) return;
+      
+      log('Image detected: ' + src.slice(0, 80));
+      
+      if (src.indexOf('blob:') === 0) {
+        log('BLOB URL detected - converting...', 'info');
+        convertBlobToDataUrl(img);
+      } else if (src.indexOf('data:image') === 0) {
+        log('Data URL detected (size: ' + Math.round(src.length / 1024) + 'KB)');
+        if (enableUploadCheckbox.checked && workerUrlInput.value) {
+          uploadToCloudflare(img, src);
+        }
+      } else if (/^https?:/i.test(src)) {
+        log('External URL detected - downloading...', 'info');
+        downloadAndConvert(img, src);
+      }
+    }
+    
+    function convertBlobToDataUrl(img) {
+      const src = img.src;
+      
+      fetch(src)
+        .then(response => response.blob())
+        .then(blob => {
+          log('✓ Blob fetched: ' + Math.round(blob.size / 1024) + 'KB');
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            log('✓ Converted to data URL: ' + Math.round(dataUrl.length / 1024) + 'KB', 'success');
+            img.src = dataUrl;
+            img.setAttribute('src', dataUrl);
+            img.dataset.processed = 'true';
+            
+            if (enableUploadCheckbox.checked && workerUrlInput.value) {
+              uploadToCloudflare(img, dataUrl);
+            }
+            
+            updateOutput();
+          };
+          reader.onerror = function() {
+            log('✗ ERROR: FileReader failed', 'error');
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(err => {
+          log('✗ ERROR: Blob fetch failed - ' + err.message, 'error');
+        });
+    }
+    
+    function downloadAndConvert(img, url) {
+      const workerUrl = workerUrlInput.value.trim();
+      
+      if (!enableUploadCheckbox.checked || !workerUrl) {
+        log('⚠ Worker not configured, leaving external URL as-is', 'info');
+        return;
+      }
+      
+      img.dataset.uploading = 'true';
+      uploadInProgress++;
+      log('⬇ Proxying external image via Worker...');
+      
+      const formData = new FormData();
+      formData.append('url', url);
+      
+      fetch(workerUrl + '/proxy', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(result => {
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          
+          if (result.success && result.url) {
+            log('✓ External image proxied: ' + result.url, 'success');
+            img.src = result.url;
+            img.setAttribute('src', result.url);
+            img.dataset.uploaded = 'true';
+            img.dataset.processed = 'true';
+            updateOutput();
+          } else {
+            log('✗ Proxy FAILED: ' + JSON.stringify(result), 'error');
+          }
+        })
+        .catch(err => {
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          log('✗ Proxy ERROR: ' + err.message, 'error');
+        });
+    }
+    
+    function uploadToCloudflare(img, dataUrl) {
+      if (img.dataset.uploading || img.dataset.uploaded) return;
+      
+      const workerUrl = workerUrlInput.value.trim();
+      if (!workerUrl) {
+        log('⚠ Skipping upload: No Worker URL configured', 'error');
+        return;
+      }
+      
+      img.dataset.uploading = 'true';
+      uploadInProgress++;
+      log('⬆ Uploading to Cloudflare... (' + uploadInProgress + ' in progress)');
+      
+      // Convert data URL to blob
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      const n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      for (let i = 0; i < n; i++) {
+        u8arr[i] = bstr.charCodeAt(i);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      
+      const formData = new FormData();
+      formData.append('image', blob, 'image.png');
+      
+      fetch(workerUrl + '/upload', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(result => {
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          
+          if (result.success && result.url) {
+            log('✓ Upload SUCCESS: ' + result.url, 'success');
+            img.src = result.url;
+            img.setAttribute('src', result.url);
+            img.dataset.uploaded = 'true';
+            updateOutput();
+          } else {
+            log('✗ Upload FAILED: ' + JSON.stringify(result), 'error');
+          }
+        })
+        .catch(err => {
+          uploadInProgress--;
+          delete img.dataset.uploading;
+          log('✗ Upload ERROR: ' + err.message, 'error');
+        });
+    }
+    
+    function checkImages() {
+      const images = editor.querySelectorAll('img');
+      log('=== IMAGE STATUS (' + images.length + ' total) ===');
+      
+      images.forEach((img, i) => {
+        const src = img.src || '';
+        let status = '';
+        
+        if (src.indexOf('blob:') === 0) {
+          status = '❌ BLOB (not converted)';
+        } else if (src.indexOf('data:image') === 0) {
+          status = '⚠ DATA URL (' + Math.round(src.length / 1024) + 'KB)';
+        } else if (src.indexOf(workerUrlInput.value) === 0) {
+          status = '✅ CLOUDFLARE';
+        } else if (/^https?:/i.test(src)) {
+          status = '🌐 EXTERNAL URL';
+        }
+        
+        if (img.dataset.uploading) status += ' [uploading...]';
+        if (img.dataset.converting) status += ' [converting...]';
+        
+        log('  Image ' + (i + 1) + ': ' + status);
+      });
+      
+      updateOutput();
+    }
+    
+    function processAllImages() {
+      const images = editor.querySelectorAll('img');
+      log('Processing ' + images.length + ' images...');
+      
+      images.forEach(img => {
+        delete img.dataset.processed;
+        handleImage(img);
+      });
+    }
+    
+    function clearEditor() {
+      editor.innerHTML = 'Click here and paste/insert image...';
+      log('Editor cleared', 'info');
+      updateOutput();
+    }
+    
+    function simulateSubmit() {
+      log('=== SIMULATING FORM SUBMIT ===', 'info');
+      
+      const images = editor.querySelectorAll('img');
+      let hasBlobs = false;
+      let hasExternal = false;
+      let hasConverting = false;
+      
+      images.forEach(img => {
+        const src = img.src || '';
+        const workerUrl = workerUrlInput.value.trim();
+        
+        if (src.indexOf('blob:') === 0) {
+          hasBlobs = true;
+        }
+        
+        if (enableUploadCheckbox.checked && workerUrl && /^https?:/i.test(src) && 
+            src.indexOf(workerUrl) !== 0 && !img.dataset.uploaded && !img.dataset.uploading) {
+          hasExternal = true;
+        }
+        
+        if (img.dataset.converting || img.dataset.uploading) {
+          hasConverting = true;
+        }
+      });
+      
+      if (hasBlobs || hasExternal || hasConverting || uploadInProgress > 0) {
+        const issues = [];
+        if (hasBlobs) issues.push('unconverted blobs');
+        if (hasExternal) issues.push('unprocessed external URLs');
+        if (hasConverting) issues.push('images still converting');
+        if (uploadInProgress > 0) issues.push(uploadInProgress + ' uploads in progress');
+        
+        log('❌ SUBMIT BLOCKED: ' + issues.join(', '), 'error');
+        log('Processing images and retrying...');
+        
+        processAllImages();
+        
+        setTimeout(() => simulateSubmit(), 1000);
+      } else {
+        log('✅ SUBMIT ALLOWED - All images processed!', 'success');
+        checkImages();
+      }
+    }
+    
+    function updateOutput() {
+      output.textContent = editor.innerHTML;
+    }
+    
+    // Initial update
+    updateOutput();
+    
+    log('Test page ready! Configure Worker URL above and start testing.');
+    log('Tip: Enable upload to test Cloudflare Worker integration');
+  </script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+/* ===========================
+   PRINT STYLES
+   =========================== */
+
+@media print {
+
+  /* Page margins */
+  @page {
+    margin: 12mm 10mm;
+    size: auto;
+  }
+
+  /* Reset body layout for print - critical fixes */
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    
+    /* Remove flexbox centering that causes gaps */
+    display: block !important;
+    min-height: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Flatten the card; full-width printable page */
+  .summary-page .shell,
+  .image-page .image-shell {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: #ffffff !important;
+    background-image: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    
+    /* Reset any transforms or positioning */
+    transform: none !important;
+    position: static !important;
+  }
+
+  /* ===========================
+     TITLE BLOCK - Strong Hierarchy
+     =========================== */
+  .title {
+    color: #000000 !important;
+    text-shadow: none !important;
+    text-align: center !important;
+    margin: 0 0 3mm !important;
+    padding: 4mm 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 20pt !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #5f7c4b !important;
+    border-top: none !important;
+    border-radius: 0 !important;
+    letter-spacing: 0.5px !important;
+    
+    /* Prevent breaking */
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .title::after {
+    display: none !important;
+  }
+
+  .subtitle {
+    color: #333333 !important;
+    text-shadow: none !important;
+    text-align: center !important;
+    margin: 0 0 2mm !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 11pt !important;
+    font-weight: 500 !important;
+    letter-spacing: 1px !important;
+    border-radius: 0 !important;
+    
+    /* Keep with title */
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .meta {
+    color: #444444 !important;
+    opacity: 1 !important;
+    text-align: center !important;
+    margin: 0 0 6mm !important;
+    padding: 0 0 4mm !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-style: italic !important;
+    font-size: 10pt !important;
+    font-weight: 500 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    
+    /* Keep with title block */
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  .meta::before,
+  .meta::after {
+    display: none !important;
+  }
+
+  /* ===========================
+     ANSWERS - Clean Layout
+     =========================== */
+  .answers {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .answer-row {
+    background: #fafafa !important;
+    border-radius: 2mm !important;
+    border: 1px solid #e0e0e0 !important;
+    border-left: 3px solid #5f7c4b !important;
+    border-image: none !important;
+    margin: 0 0 4mm !important;
+    padding: 3mm 4mm !important;
+    box-shadow: none !important;
+    
+    /* Prevent breaking inside answer rows */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    
+    /* Reset hover effects */
+    transform: none !important;
+  }
+
+  .answer-row::after {
+    display: none !important;
+  }
+
+  /* Question Label */
+  .q-label {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 10pt !important;
+    margin-bottom: 1.5mm !important;
+    line-height: 1.4 !important;
+  }
+
+  .q-label::before {
+    content: "" !important;
+  }
+
+  /* Answer Value */
+  .q-value {
+    color: #333333 !important;
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
+    opacity: 1 !important;
+  }
+
+  .q-value em,
+  .q-value i {
+    opacity: 0.8 !important;
+    font-weight: 300 !important;
+  }
+
+  /* Preserve inline styles from rich text content */
+  .q-value > div,
+  .q-value > p {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure text-align and other inline styles are respected in print */
+  .q-value [style*="text-align: center"] {
+    text-align: center !important;
+  }
+
+  .q-value [style*="text-align: left"] {
+    text-align: left !important;
+  }
+
+  .q-value [style*="text-align: right"] {
+    text-align: right !important;
+  }
+
+  .q-value [style*="text-align: justify"] {
+    text-align: justify !important;
+  }
+
+  /* ===========================
+     TABLES - Clean Design
+     =========================== */
+  .answers table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    background: #ffffff !important;
+    margin: 2mm 0 !important;
+    
+    /* Prevent table from breaking across pages if possible */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .answers thead,
+  .answers tr:first-child {
+    background: #e8f0e4 !important;
+  }
+
+  .answers th {
+    border: 1px solid #5f7c4b !important;
+    padding: 2mm 3mm !important;
+    font-size: 9pt !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    background: #e8f0e4 !important;
+  }
+
+  .answers td {
+    border: 1px solid #c0d0b8 !important;
+    padding: 2mm 3mm !important;
+    font-size: 9pt !important;
+    color: #333333 !important;
+    background: #ffffff !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+
+  .answers tr:nth-child(even) td {
+    background: #f8faf7 !important;
+  }
+
+  /* Table rows should try to stay together */
+  .answers tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* ===========================
+     ORPHAN/WIDOW CONTROL
+     =========================== */
+  p, .q-value, .q-label {
+    orphans: 3 !important;
+    widows: 3 !important;
+  }
+
+  /* ===========================
+     HIDDEN ELEMENTS
+     =========================== */
+  .buttons,
+  .actions,
+  .image-actions,
+  .carousel-nav,
+  .carousel-dots,
+  .zoom-controls {
+    display: none !important;
+  }
+
+  .credit,
+  .image-caption {
+    color: #888888 !important;
+    font-size: 8pt !important;
+  }
+
+  /* ===========================
+     IMAGES
+     =========================== */
+  img {
+    max-width: 100% !important;
+    max-height: 400px !important;
+    height: auto !important;
+    display: inline-block !important;
+    margin: 2mm auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    object-fit: contain !important;
+  }
+  
+  .q-value img {
+    margin: 2mm 0 !important;
+  }
+
+  /* For centered images in print */
+  .q-value div[style*="text-align: center"] img,
+  .q-value p[style*="text-align: center"] img {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* ===========================
+     LINKS - Show URLs
+     =========================== */
+  a[href]::after {
+    content: none !important;
+  }
+
+  a {
+    color: #333333 !important;
+    text-decoration: underline !important;
+  }
+}

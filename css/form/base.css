@@ -1,0 +1,51 @@
+/* ===========================================
+   GLOBAL RESET / TOUCH FEEL
+   =========================================== */
+
+* {
+  -webkit-tap-highlight-color: rgba(95, 124, 75, 0.2);
+}
+
+/* Accent palette (inline)
+   main:      #5f7c4b
+   glow:      rgba(95, 124, 75, 0.7)
+*/
+
+/* ===========================================
+   FORM WRAPPER
+   =========================================== */
+
+.form-all {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 10px;
+  color: #ffffff;
+}
+
+/* Keep height for background, but DON'T flex-center (builder-safe) */
+#stage {
+  min-height: 100vh !important;
+  display: block !important;
+  padding: 0 !important;
+}
+
+/* Main card centering on larger screens */
+#stage > .form-all {
+  margin: 10px auto !important;
+}
+
+/* Some Jotform themes wrap in .supernova; keep full height */
+.supernova {
+  min-height: 100vh !important;
+}
+
+/* ===========================================
+   THANK YOU PAGE – KILL GLOBAL BLUR/FILTER
+   =========================================== */
+
+body.thankyou,
+body.thankyou * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
