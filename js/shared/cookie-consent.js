@@ -62,7 +62,7 @@
         }, 100);
         
         if (window.CLARITY_DEBUG) {
-            console.log('🍪 Clarity loaded after user consent');
+            console.log('[Cookie Consent] Clarity loaded after user consent');
         }
     }
     
@@ -79,7 +79,7 @@
         hideBanner();
         
         if (window.CLARITY_DEBUG) {
-            console.log('🍪 Analytics declined by user');
+            console.log('[Cookie Consent] Analytics declined by user');
         }
     }
     
@@ -112,7 +112,7 @@
         } else if (hasDeclined()) {
             // User declined - do nothing
             if (window.CLARITY_DEBUG) {
-                console.log('🍪 Analytics previously declined by user');
+                console.log('[Cookie Consent] Analytics previously declined by user');
             }
         } else {
             // No choice made yet - show banner

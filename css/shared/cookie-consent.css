@@ -1,5 +1,6 @@
 /**
  * Cookie Consent Banner Styles
+ * Matches site theme: Black/Green with Jura font
  */
 
 #cookie-consent-banner {
@@ -7,18 +8,17 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(20, 20, 30, 0.98);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: #e8e8e8;
+    background: #000000;
+    color: #00ff00;
     padding: 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 -4px 20px rgba(0, 255, 0, 0.3);
     z-index: 999999;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 2px solid #00ff00;
     display: none;
     opacity: 0;
     transform: translateY(100%);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    font-family: 'Jura', sans-serif;
 }
 
 #cookie-consent-banner.visible {
@@ -45,23 +45,25 @@
     margin: 0 0 8px 0;
     font-size: 1.1em;
     font-weight: 600;
-    color: #ffffff;
+    color: #00ff00;
+    font-family: 'Jura', sans-serif;
 }
 
 .cookie-consent-text p {
     margin: 0;
     font-size: 0.95em;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.8);
+    color: #00ff00;
+    font-family: 'Jura', sans-serif;
 }
 
 .cookie-consent-text a {
-    color: #6c9fff;
+    color: #00ff00;
     text-decoration: underline;
 }
 
 .cookie-consent-text a:hover {
-    color: #8fb3ff;
+    color: #33ff33;
 }
 
 .cookie-consent-buttons {
@@ -72,25 +74,25 @@
 
 .cookie-consent-btn {
     padding: 10px 24px;
-    border: none;
+    border: 2px solid #00ff00;
     border-radius: 5px;
     font-size: 0.95em;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-family: inherit;
+    font-family: 'Jura', sans-serif;
     white-space: nowrap;
 }
 
 #cookie-accept-btn {
-    background: #4CAF50;
-    color: #ffffff;
+    background: #00ff00;
+    color: #000000;
 }
 
 #cookie-accept-btn:hover {
-    background: #45a049;
+    background: #33ff33;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.5);
 }
 
 #cookie-accept-btn:active {
@@ -99,18 +101,18 @@
 
 #cookie-decline-btn {
     background: transparent;
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #00ff00;
+    border: 2px solid #00ff00;
 }
 
 #cookie-decline-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
-    color: #ffffff;
+    background: rgba(0, 255, 0, 0.1);
+    border-color: #33ff33;
+    color: #33ff33;
 }
 
 #cookie-decline-btn:active {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 255, 0, 0.05);
 }
 
 /* Mobile responsive */
