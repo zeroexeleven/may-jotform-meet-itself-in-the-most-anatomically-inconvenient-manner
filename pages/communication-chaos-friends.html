@@ -133,6 +133,54 @@ span.FITB-inptCont[data-type=radiobox] label {
 <script src="../js/form/jotform.js" type="text/javascript"></script>
 <script src="../js/shared/vendor/smoothscroll.min.js" type="text/javascript"></script>
 <script src="../js/form/errorNavigation.js" type="text/javascript"></script>
+<!-- Clarity is now loaded only after user consent via cookie-consent.js -->
+<script>
+// Clarity debug mode - set to true with ?clarity_debug=true parameter
+// This flag is separate from general debug logging
+window.CLARITY_DEBUG = new URLSearchParams(window.location.search).get('clarity_debug') === 'true';
+
+// Tag form metadata - wait for clarity to be ready
+// This function will be called by cookie-consent.js after user accepts
+window.initClarityTags = function() {
+    function tryInitTags() {
+        if (typeof clarity !== 'undefined') {
+            // Track page load
+            clarity("set", "page_loaded", "true");
+            clarity("set", "page_load_time", new Date().toISOString());
+            clarity("set", "page_url", window.location.href);
+            clarity("set", "user_agent", navigator.userAgent);
+            clarity("set", "screen_resolution", window.screen.width + "x" + window.screen.height);
+            clarity("set", "viewport_size", window.innerWidth + "x" + window.innerHeight);
+            
+            // Form metadata
+            clarity("set", "form_type", "jotform");
+            clarity("set", "form_id", "253365499008162");
+            clarity("set", "form_name", "communication_chaos_friends");
+            
+            // Force recording for this session (100% capture)
+            clarity("set", "force_record", "true");
+            
+            if (window.CLARITY_DEBUG) {
+                console.log("✅ Clarity initialized successfully!");
+                console.log("📊 Clarity Project ID: ucfuj92cyf");
+                console.log("🔍 Recording set to 100% for this form");
+                console.log("Page load tracked at:", new Date().toISOString());
+                console.log("🔍 Check Network tab for requests to 'clarity.ms' to verify data is being sent");
+                
+                // Test if clarity is queuing commands
+                if (typeof clarity.q !== 'undefined') {
+                    console.log("📦 Clarity queue has", clarity.q.length, "commands");
+                }
+            }
+        } else {
+            // Retry after 100ms if clarity isn't ready yet
+            setTimeout(tryInitTags, 100);
+        }
+    }
+    tryInitTags();
+};
+</script>
+<script src="../js/shared/cookie-consent.js" type="text/javascript"></script>
 
 </head>
 <body>
@@ -177,6 +225,20 @@ span.FITB-inptCont[data-type=radiobox] label {
 <input type="hidden" class="simple_spc" id="simple_spc" name="simple_spc" value="253365499008162" />
 
 </form>
+
+<!-- Cookie Consent Banner -->
+<div id="cookie-consent-banner">
+    <div class="cookie-consent-container">
+        <div class="cookie-consent-text">
+            <h3>We Value Your Privacy</h3>
+            <p>We use analytics cookies to improve your experience and understand how our forms are used. You can choose to accept or decline. <a href="https://privacy.microsoft.com/en-us/privacystatement" target="_blank" rel="noopener">Learn more</a></p>
+        </div>
+        <div class="cookie-consent-buttons">
+            <button id="cookie-accept-btn" class="cookie-consent-btn">Accept Analytics</button>
+            <button id="cookie-decline-btn" class="cookie-consent-btn">Decline</button>
+        </div>
+    </div>
+</div>
 
 <script src="../js/shared/vendor/json2.js" type="text/javascript"></script>
 
