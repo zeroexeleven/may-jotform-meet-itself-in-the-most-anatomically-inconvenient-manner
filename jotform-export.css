@@ -1,0 +1,1251 @@
+/* ===========================================
+   JOTFORM CUSTOM CSS EXPORT
+   All form CSS updates for paste into JotForm
+   =========================================== */
+
+/* ===========================================
+   GLOBAL RESET / TOUCH FEEL
+   =========================================== */
+
+* {
+  -webkit-tap-highlight-color: rgba(95, 124, 75, 0.2);
+}
+
+/* Accent palette (inline)
+   main:      #5f7c4b
+   glow:      rgba(95, 124, 75, 0.7)
+*/
+
+/* ===========================================
+   FORM WRAPPER
+   =========================================== */
+
+html {
+  height: auto;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body {
+  height: auto;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: block !important;
+  align-items: unset !important;
+  justify-content: unset !important;
+  position: relative;
+}
+
+.form-all {
+  background: rgba(0, 0, 0, 0.7) !important;
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  color: #ffffff;
+  width: 100%;
+  max-width: none;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100dvh;
+}
+
+/* Wrapper for form content to add bottom padding */
+.form-section {
+  padding: 20px 20px 100px 20px !important;
+  box-sizing: border-box;
+}
+
+/* Add more horizontal padding on larger screens */
+@media (min-width: 768px) {
+  .form-section {
+    padding: 40px 80px 140px 80px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form-section {
+    padding: 40px 180px 140px 180px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .form-section {
+    padding: 40px 320px 140px 320px !important;
+  }
+}
+
+.header-logo {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.header-text {
+  margin: 0 !important;
+}
+
+.form-header {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.form-line {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+/* Reduce spacing on desktop */
+@media (min-width: 768px) {
+  .form-line {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+}
+
+/* Keep padding consistent on text-only form lines */
+.form-line[data-type="control_text"] {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+@media (min-width: 768px) {
+  .form-line[data-type="control_text"] {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+}
+
+/* Keep height for background, but DON'T flex-center (builder-safe) */
+#stage {
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Main card centering on larger screens */
+#stage > .form-all {
+  margin: 0 !important;
+}
+
+/* Some Jotform themes wrap in .supernova; keep full height */
+.supernova {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Override any Jotform theme margins that might add gap - multiple selectors for specificity */
+.supernova > .form-all,
+.supernova .form-all,
+body .form-all,
+html .form-all {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  top: 0 !important;
+  transform: translateY(0) !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .form-all {
+    background: rgba(0, 0, 0, 0.7) !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+  }
+  
+  .form-section {
+    padding: 0 12px 70px 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-all {
+    background: rgba(0, 0, 0, 0.7) !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+  }
+}
+
+/* ===========================================
+   THANK YOU PAGE – KILL GLOBAL BLUR/FILTER
+   =========================================== */
+
+body.thankyou,
+body.thankyou * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* ===========================================
+   BUTTON COLORS (DESKTOP + MOBILE)
+   =========================================== */
+
+/* Position submit button container at bottom - always visible at bottom of viewport */
+li[data-type="control_button"] {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  z-index: 10000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  padding: 12px 20px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.7) !important;
+  border-top: 1px solid rgba(95, 124, 75, 0.3) !important;
+  margin: 0 !important;
+  transform: none !important;
+  max-height: none !important;
+  /* Ensure fixed positioning works properly */
+  pointer-events: auto !important;
+}
+
+.form-buttons-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+/* Desktop + general */
+.form-all .form-submit-button,
+.form-all .form-submit-button-simple,
+.form-all .jf-form-buttons button,
+.form-all .jf-form-buttons .btn-save,
+.form-all .jf-form-buttons .form-sbutton {
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background-image: linear-gradient(90deg, #000000 0%, #5f7c4b 50%, #000000 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+}
+
+.form-all .form-submit-button:hover,
+.form-all .form-submit-button-simple:hover,
+.form-all .jf-form-buttons button:hover,
+.form-all .jf-form-buttons .btn-save:hover,
+.form-all .jf-form-buttons .form-sbutton:hover {
+  filter: brightness(1.05) !important;
+}
+
+.form-all .form-submit-button:active,
+.form-all .form-submit-button-simple:active,
+.form-all .jf-form-buttons button:active,
+.form-all .jf-form-buttons .btn-save:active,
+.form-all .jf-form-buttons .form-sbutton:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Position pagebreak buttons at bottom - always visible at bottom of viewport */
+.form-pagebreak {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  z-index: 10000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  padding: 12px 20px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.7) !important;
+  border-top: 1px solid rgba(95, 124, 75, 0.3) !important;
+  transform: none !important;
+  max-height: none !important;
+  /* Ensure fixed positioning works properly */
+  pointer-events: auto !important;
+}
+
+.form-pagebreak-back-container,
+.form-pagebreak-next-container {
+  flex: 0 0 auto !important;
+}
+
+.pageInfo {
+  display: none !important;
+}
+
+/* Style buttons to match summary page */
+.form-pagebreak-back,
+.form-pagebreak-next {
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background-image: linear-gradient(90deg, #000000 0%, #5f7c4b 50%, #000000 100%) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out !important;
+  font-size: 14px !important;
+  margin: 0 8px !important;
+}
+
+.form-pagebreak-back:hover,
+.form-pagebreak-next:hover {
+  filter: brightness(1.05) !important;
+}
+
+.form-pagebreak-back:active,
+.form-pagebreak-next:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Desktop - remove width constraint and add padding */
+@media screen and (min-width: 481px) {
+  .form-pagebreak {
+    width: auto !important;
+    left: 20px !important;
+    right: 20px !important;
+    padding: 12px 30px !important;
+  }
+  
+  li[data-type="control_button"] {
+    width: auto !important;
+    left: 20px !important;
+    right: 20px !important;
+    padding: 12px 30px !important;
+  }
+}
+
+/* Mobile override */
+@media screen and (max-width: 480px) {
+  li[data-type="control_button"] {
+    padding: 8px 10px !important;
+  }
+  
+  .form-all .form-submit-button,
+  .form-all .form-submit-button-simple,
+  .form-all .jf-form-buttons button,
+  .form-all .jf-form-buttons .btn-save,
+  .form-all .jf-form-buttons .form-sbutton {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+  
+  .form-pagebreak {
+    padding: 8px 10px !important;
+  }
+  
+  .form-pagebreak-back,
+  .form-pagebreak-next {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ===========================================
+   PROGRESSBAR
+   =========================================== */
+
+#progressBar,
+.form-progressbar {
+  background-color: rgba(23, 31, 27, 0.9);
+}
+
+#progressBar .bar {
+  background-color: #5f7c4b !important;
+}
+
+.rating-item.checked {
+  color: #5f7c4b !important;
+}
+
+/* ===========================================
+   QUESTION BLOCKS
+   =========================================== */
+
+.form-line {
+  padding: 10px 16px;
+  margin: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Reduce margin on desktop */
+@media (min-width: 768px) {
+  .form-line {
+    margin: 4px 10px;
+  }
+}
+
+.form-input-wide[data-type="control_head"] {
+  background: rgba(0, 0, 0, 0.72) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  margin: 8px 10px !important;
+  padding: 12px 16px !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* Desktop spacing for paragraphs */
+@media (min-width: 768px) {
+  .form-input-wide[data-type="control_head"] {
+    margin: 4px 10px !important;
+  }
+}
+
+/* ===========================================
+   LABELS & TEXT
+   =========================================== */
+
+.form-label {
+  color: #f7f7f7;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.form-sub-label {
+  color: #d0d5d2;
+  font-size: 13px;
+  display: block;
+  margin: 4px 0 6px !important;
+}
+
+.form-description,
+.form-description p {
+  color: #d0d5d2;
+  font-size: 13px;
+}
+
+.form-required {
+  color: #ff6b6b;
+}
+
+.form-header-group {
+  margin: 6px 0;
+  border: none;
+}
+
+/* Center question copy */
+.form-label,
+.form-sub-label,
+.form-description,
+.form-description p {
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.form-line .form-input-wide p,
+.form-html p {
+  color: #f7f7f7;
+}
+
+/* ===========================================
+   INPUTS: TEXT / TEXTAREA / DROPDOWN
+   =========================================== */
+
+.form-textbox,
+.form-textarea,
+.form-dropdown,
+.form-radio-other-input,
+.form-checkbox-other-input {
+  background: rgba(11, 16, 13, 0.9) !important;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  padding: 9px 12px;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  border-radius: 8px;
+  min-height: 100px;
+  max-width: 100% !important;
+  resize: vertical !important;
+  overflow: auto !important;
+}
+
+.form-textbox::placeholder,
+.form-textarea::placeholder {
+  color: #8f9c95;
+}
+
+.form-textbox:focus,
+.form-textarea:focus,
+.form-dropdown:focus {
+  outline: none !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+.form-textarea:hover {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* ===========================================
+   SHORT TEXT INPUT ALIGNMENT / NO BLUE GLOW
+   =========================================== */
+
+.form-input-wide[data-layout="half"] {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+.form-input-wide[data-layout="half"] .form-textbox {
+  width: 100% !important;
+  max-width: 320px !important;
+  margin: 0 auto !important;
+}
+
+.form-input-wide[data-layout="half"] .form-textbox:focus,
+.form-input-wide[data-layout="half"] .form-textbox:hover,
+.form-input-wide[data-layout="half"] .form-textbox:active,
+.form-input-wide[data-layout="half"] .form-textbox:focus-visible {
+  outline: none !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* ===========================================
+   DROPDOWN ARROW
+   =========================================== */
+
+.form-dropdown {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #cfd8d2 50%),
+    linear-gradient(135deg, #cfd8d2 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* ===========================================
+   CHECKBOXES
+   =========================================== */
+
+.form-checkbox-item {
+  color: #f2f4f3;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 18px;
+  margin-bottom: 4px;
+}
+
+.form-checkbox-item label {
+  margin-left: 0 !important;
+  color: #f7f7f7 !important;
+}
+
+.form-checkbox {
+  accent-color: #5f7c4b;
+  outline: none !important;
+}
+
+.form-checkbox + label:before {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background-color: transparent;
+}
+
+/* hover */
+.form-checkbox:hover + label:before,
+.form-checkbox:focus + label:before {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+}
+
+/* checked */
+.form-checkbox:checked + label:before {
+  background-color: #5f7c4b !important;
+  border-color: #5f7c4b !important;
+}
+
+/* ===========================================
+   RADIO BUTTONS – BOXED
+   =========================================== */
+
+.form-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-radio + label:before,
+.form-radio + label:after {
+  display: none !important;
+}
+
+.form-radio-item {
+  display: block;
+  width: 100%;
+  margin: 4px 0;
+  color: #f2f4f3;
+  font-size: 14px;
+}
+
+.form-radio-item label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f7f7 !important;
+  cursor: pointer;
+}
+
+.form-radio-item:hover label {
+  border-color: #5f7c4b;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.55);
+}
+
+.form-radio:checked + label {
+  background: rgba(95, 124, 75, 0.35);
+  border-color: #5f7c4b;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.75);
+}
+
+/* ===========================================
+   FITB RADIO – MATCH BOXED SINGLE CHOICE
+   =========================================== */
+
+.FITB p {
+  text-align: left;
+  margin: 2px 0 4px !important;
+}
+
+.FITB .FITB-inptCont {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-width: 120px !important;
+  margin: 2px 6px !important;
+}
+
+.FITB input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.FITB input[type="radio"] + label {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #f7f7f7 !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+}
+
+.FITB .FITB-inptCont input.form-textbox {
+  width: auto !important;
+}
+
+.FITB input[type="radio"] + label:hover {
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.55) !important;
+}
+
+.FITB input[type="radio"]:checked + label {
+  background: rgba(95, 124, 75, 0.35) !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.75) !important;
+}
+
+/* Mobile: reduce FITB container margin for tighter spacing */
+@media (max-width: 480px) {
+  .FITB .FITB-inptCont {
+    margin: 2px 4px !important;
+  }
+  
+  .FITB input[type="radio"] + label {
+    padding: 6px 8px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* ===========================================
+   ERROR STATES
+   =========================================== */
+
+.form-line-error {
+  border-color: #ff6b6b !important;
+}
+
+/* Apply to ALL devices */
+.form-line-error {
+  position: relative !important;
+  padding-bottom: 33px !important;  /* reserves space for the error */
+  border-color: rgb(111 11 11) !important;  
+}
+
+.form-line-error .form-error-message {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0px !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-error-message {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ffd1d1;
+  border-radius: 6px;
+  font-size: 11px !important;
+  background-color: transparent !important;
+  color: #B40E34 !important;
+}
+
+/* Hide exclamation icon in error messages */
+.form-error-message img,
+.form-error-message img[src*="exclamation"] {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.a11y-error-container:has(.error-list:empty) {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+.error-navigation-inner {
+  display: none !important;
+}
+
+.form-button-error {
+  display: none !important;
+}
+
+.a11y-error-container .error-div {
+  margin: 4px 0 !important;
+}
+
+@media screen and (max-width: 480px) {
+  /* Keep the line itself stable and make room for the error */
+  .form-line-error {
+    position: relative !important;
+    padding-bottom: 30px !important; /* tweak this if error text clips */
+  }
+
+  /* Anchor the error text at the bottom of the line instead of pushing things */
+  .form-line-error .form-error-message {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 3px !important;
+    margin: 0 !important;
+	font-size: 9px !important;
+  }
+}
+
+/* ===========================================
+   RICH TEXT (nicEdit)
+   =========================================== */
+
+/* Make all nicEdit wrappers respect container width */
+.nicEdit-panelContain,
+.nicEdit-panelContain + div,
+.nicEdit-main {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* >>> key fix: rich text areas that are inside sublabel containers <<< */
+
+/* The wrapper span that holds the toolbar, editor box, textarea and sublabel */
+.form-sub-label-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Both of those inline 642px divs inside the span */
+.form-sub-label-container > div[style*="width"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* icon colors */
+.nicEdit-button {
+  filter: invert(1) brightness(1.8) grayscale(1) !important;
+}
+
+/* Inner editor content */
+.form-sub-label-container .nicEdit-main {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Hide dropdowns etc. and style editor */
+.nicEdit-panelContain {
+  background: transparent !important;
+  border: none !important;
+  margin-bottom: 4px !important;
+}
+
+.nicEdit-panel {
+  margin: 0 !important;
+}
+
+.nicEdit-buttonContain {
+  margin-right: 4px !important;
+}
+
+.nicEdit-button-undefined {
+  background: transparent !important;
+  border: none !important;
+}
+
+.nicEdit-button-undefined:hover {
+  background: rgba(95, 124, 75, 0.25) !important;
+  border-radius: 4px !important;
+}
+
+/* Pressed button state */
+.nicEdit-button-undefined:active {
+  background: rgba(95, 124, 75, 0.5) !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Hide dropdown select UI */
+.nicEdit-selectContain {
+  display: none !important;
+}
+
+/* Hide last five icons */
+.nicEdit-panel .nicEdit-button[style*="background-position: -360px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -378px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -396px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -36px 0px"],
+.nicEdit-panel .nicEdit-button[style*="background-position: -18px 0px"] {
+  display: none !important;
+  width: 0px !important;
+}
+
+.nicEdit-buttonContain:has(.nicEdit-button[style*="background-position: -180px 0px"]) { display: none !important; }
+
+/* Editor box softened */
+.nicEdit-panelContain + div {
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 8px !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+}
+
+.nicEdit-main {
+  background: transparent !important;
+  color: #f7f7f7 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  min-height: 160px !important;
+  padding: 6px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Prevent indent (blockquote) from expanding container */
+.nicEdit-main blockquote {
+  margin-left: 20px !important;
+  margin-right: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 0 !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+  max-width: calc(100% - 30px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Nested blockquotes */
+.nicEdit-main blockquote blockquote {
+  max-width: calc(100% - 30px) !important;
+}
+
+/* List styling - bullets stay with text regardless of alignment */
+.nicEdit-main ul,
+.nicEdit-main ol {
+  margin-left: 0 !important;
+  padding-left: 30px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Keep bullets visible and aligned with text */
+.nicEdit-main ul li,
+.nicEdit-main ol li {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  list-style-position: outside !important;
+}
+
+/* Center/right aligned lists - keep bullets on left */
+.nicEdit-main ul[style*="text-align: center"],
+.nicEdit-main ol[style*="text-align: center"],
+.nicEdit-main ul[style*="text-align: right"],
+.nicEdit-main ol[style*="text-align: right"] {
+  padding-left: 30px !important;
+  text-align: left !important;
+}
+
+/* If parent has alignment, keep list formatting sane */
+.nicEdit-main div[style*="text-align"] ul,
+.nicEdit-main div[style*="text-align"] ol,
+.nicEdit-main p[style*="text-align"] ul,
+.nicEdit-main p[style*="text-align"] ol {
+  text-align: left !important;
+}
+
+/* Underlying textarea */
+textarea[data-richtext="Yes"] {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Extra mobile clamp in case anything still tries nonsense */
+@media screen and (max-width: 480px) {
+  .form-input-wide[data-type="control_textarea"],
+  .form-sub-label-container {
+    width: 100% !important;
+  }
+
+  .form-sub-label-container > div[style*="width"],
+  .form-sub-label-container .nicEdit-panelContain + div,
+  .form-sub-label-container .nicEdit-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* ===========================================
+   MATRIX TABLE
+   =========================================== */
+
+.form-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.form-matrix-table th,
+.form-matrix-table td {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 8px 10px;
+}
+
+.form-matrix-table th {
+  background: rgba(0, 0, 0, 0.78);
+  color: #f7f7f7;
+}
+
+.form-matrix-table td {
+  background: transparent !important;
+}
+
+.form-matrix-values .form-textbox,
+.form-matrix-values .form-textarea {
+  background: rgba(11, 16, 13, 0.9) !important;
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   MATRIX TABLE INPUT HOVER / FOCUS – KILL BLUE
+   =========================================== */
+
+.form-matrix-table input[type="text"],
+.form-matrix-table input[type="number"],
+.form-matrix-table textarea {
+  background: rgba(11, 16, 13, 0.9) !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  outline: none !important;
+}
+
+.form-matrix-table input[type="text"]:hover,
+.form-matrix-table input[type="text"]:focus,
+.form-matrix-table input[type="number"]:hover,
+.form-matrix-table input[type="number"]:focus,
+.form-matrix-table textarea:hover,
+.form-matrix-table textarea:focus {
+  outline: none !important;
+  border-color: #5f7c4b !important;
+  box-shadow: 0 0 0 2px rgba(95, 124, 75, 0.7) !important;
+  background: rgba(11, 16, 13, 0.95) !important;
+}
+
+/* ===========================================
+   TOOLTIP
+   =========================================== */
+
+/* Wipe grey wrapper/border */
+.form-description {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Dark-green bubble */
+.form-description-content {
+  background: #000000 !important;
+  border-radius: 6px !important;
+  color: #f7f7f7 !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  border: 1px rgba(95, 124, 75, 0.7) !important;
+  box-shadow: 0 0 3px 3px rgba(95, 124, 75, 0.28) !important;
+}
+
+/* Desktop: hover tooltip in corner */
+@media screen and (min-width: 481px) {
+  .form-line {
+    position: relative;
+  }
+
+  .form-description {
+    display: none !important;
+    position: absolute !important;
+    top: 10px;
+    right: 16px;
+    max-width: 280px;
+    width: auto;
+    text-align: left !important;
+    z-index: 999;
+  }
+
+  .form-line:hover > .form-description,
+  .form-label:hover + .form-description,
+  .form-description:hover {
+    display: block !important;
+  }
+
+  .form-description-arrow,
+  .form-description-arrow-small {
+    display: none !important;
+  }
+}
+
+/* Mobile: subtitle block under question, no overlay */
+@media screen and (max-width: 480px) {
+
+  /* Never float these clones */
+  div[role="tooltip"],
+  .jf-tooltip,
+  .jf-tooltip-content {
+    display: none !important;
+  }
+  
+  /* Hide tooltip trigger icons on mobile */
+  .form-help-icon,
+  .form-description-icon,
+  img[src*="question"],
+  img[src*="tooltip"],
+  .icon-question-mark {
+    display: none !important;
+  }
+
+  .form-line {
+    display: block !important;
+  }
+
+  .form-description {
+    display: block !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 4px 0 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    z-index: auto !important;
+  }
+
+  .form-description-content {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+	background: #000000 !important;
+    border: 1px rgba(95, 124, 75, 0.7) !important;
+	box-shadow: 0 0 3px 3px rgba(95, 124, 75, 0.28) !important;
+  }
+
+  .form-description-arrow,
+  .form-description-arrow-small {
+    display: none !important;
+  }
+}
+
+/* ===========================================
+   REVIEW BEFORE SUBMIT – TABLE / FITB FIX
+   =========================================== */
+
+#previewContainer {
+  color: #f7f7f7 !important;
+  font-size: 14px !important;
+}
+
+#previewContainer > ul > li {
+  margin-bottom: 10px !important;
+}
+
+#previewContainer .jf-question-label {
+  font-weight: 600 !important;
+  color: #f7f7f7 !important;
+  margin-bottom: 4px !important;
+}
+
+#previewContainer .jf-question-answer {
+  color: #d0d5d2 !important;
+}
+
+/* Constrain images in answers to fit container */
+#previewContainer .jf-question-answer img,
+#previewContainer img,
+.form-all img {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  height: auto !important;
+  display: block !important;
+  margin: 8px auto !important;
+  border-radius: 6px !important;
+  object-fit: contain !important;
+}
+
+/* Input Table in review */
+#previewContainer .table-grid {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+}
+
+#previewContainer .table-grid .table-head {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  color: #f7f7f7 !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  vertical-align: top !important;
+  white-space: normal !important;
+}
+
+#previewContainer .table-grid .table-col {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 6px 8px !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #d0d5d2 !important;
+  vertical-align: middle !important;
+  font-size: 15px !important;
+}
+
+#previewContainer .table-grid tr > .table-col:last-child {
+  text-align: center !important;
+}
+
+/* FITB previews: keep them matching the dark theme */
+#previewContainer .FITB .FITB-inptCont,
+#previewContainer .FITB .FITB-inptCont label {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+/* ===========================================
+   PRINT STYLES — MATCH REVIEW BACKGROUNDS
+   =========================================== */
+
+@media print {
+  .table-grid {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .table-grid .table-head {
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    padding: 6px 8px !important;
+    background: rgba(0, 0, 0, 0.78) !important;
+    color: #f7f7f7 !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    vertical-align: top !important;
+    white-space: normal !important;
+  }
+
+  .table-grid .table-col {
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    padding: 6px 8px !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+    color: #d0d5d2 !important;
+    vertical-align: middle !important;
+    font-size: 15px !important;
+  }
+
+  .FITB .FITB-inptCont,
+  .FITB .FITB-inptCont label {
+    background: rgba(0, 0, 0, 0.55) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  }
+  
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+  }
+}
