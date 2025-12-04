@@ -47,11 +47,6 @@ body {
   color: #ffffff;
   width: 100%;
   max-width: none;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: auto !important;
   padding: 0 !important;
   margin: 0 !important;
   box-sizing: border-box;
