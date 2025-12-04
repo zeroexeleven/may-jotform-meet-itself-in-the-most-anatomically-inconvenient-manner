@@ -3,7 +3,7 @@
    =========================== */
 
 .thankyou-page {
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   touch-action: none;
   -webkit-overflow-scrolling: auto;
