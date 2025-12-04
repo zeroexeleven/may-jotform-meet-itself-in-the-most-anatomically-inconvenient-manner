@@ -2,27 +2,161 @@
    BUTTON COLORS (DESKTOP + MOBILE)
    =========================================== */
 
+/* Position submit button container at bottom - always visible at bottom of viewport */
+li[data-type="control_button"] {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  z-index: 10000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  padding: 12px 20px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.7) !important;
+  border-top: 1px solid rgba(95, 124, 75, 0.3) !important;
+  margin: 0 !important;
+  transform: none !important;
+  max-height: none !important;
+  /* Ensure fixed positioning works properly */
+  pointer-events: auto !important;
+}
+
+.form-buttons-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
 /* Desktop + general */
 .form-all .form-submit-button,
 .form-all .form-submit-button-simple,
 .form-all .jf-form-buttons button,
 .form-all .jf-form-buttons .btn-save,
 .form-all .jf-form-buttons .form-sbutton {
-  background-color: #000000 !important;
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background-image: linear-gradient(90deg, #000000 0%, #5f7c4b 50%, #000000 100%) !important;
+  background-color: transparent !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out !important;
   color: #ffffff !important;
-  border-color: #000000 !important;
+  font-size: 14px !important;
 }
 
-/* Mobile override (same look, scoped for safety) */
+.form-all .form-submit-button:hover,
+.form-all .form-submit-button-simple:hover,
+.form-all .jf-form-buttons button:hover,
+.form-all .jf-form-buttons .btn-save:hover,
+.form-all .jf-form-buttons .form-sbutton:hover {
+  filter: brightness(1.05) !important;
+}
+
+.form-all .form-submit-button:active,
+.form-all .form-submit-button-simple:active,
+.form-all .jf-form-buttons button:active,
+.form-all .jf-form-buttons .btn-save:active,
+.form-all .jf-form-buttons .form-sbutton:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Position pagebreak buttons at bottom - always visible at bottom of viewport */
+.form-pagebreak {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  z-index: 10000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  padding: 12px 20px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.7) !important;
+  border-top: 1px solid rgba(95, 124, 75, 0.3) !important;
+  transform: none !important;
+  max-height: none !important;
+  /* Ensure fixed positioning works properly */
+  pointer-events: auto !important;
+}
+
+.form-pagebreak-back-container,
+.form-pagebreak-next-container {
+  flex: 0 0 auto !important;
+}
+
+.pageInfo {
+  display: none !important;
+}
+
+/* Style buttons to match summary page */
+.form-pagebreak-back,
+.form-pagebreak-next {
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background-image: linear-gradient(90deg, #000000 0%, #5f7c4b 50%, #000000 100%) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out !important;
+  font-size: 14px !important;
+  margin: 0 8px !important;
+}
+
+.form-pagebreak-back:hover,
+.form-pagebreak-next:hover {
+  filter: brightness(1.05) !important;
+}
+
+.form-pagebreak-back:active,
+.form-pagebreak-next:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Desktop - remove width constraint and add padding */
+@media screen and (min-width: 481px) {
+  .form-pagebreak {
+    width: auto !important;
+    left: 20px !important;
+    right: 20px !important;
+    padding: 12px 30px !important;
+  }
+  
+  li[data-type="control_button"] {
+    width: auto !important;
+    left: 20px !important;
+    right: 20px !important;
+    padding: 12px 30px !important;
+  }
+}
+
+/* Mobile override */
 @media screen and (max-width: 480px) {
+  li[data-type="control_button"] {
+    padding: 8px 10px !important;
+  }
+  
   .form-all .form-submit-button,
   .form-all .form-submit-button-simple,
   .form-all .jf-form-buttons button,
   .form-all .jf-form-buttons .btn-save,
   .form-all .jf-form-buttons .form-sbutton {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #000000 !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+  
+  .form-pagebreak {
+    padding: 8px 10px !important;
+  }
+  
+  .form-pagebreak-back,
+  .form-pagebreak-next {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
   }
 }
 

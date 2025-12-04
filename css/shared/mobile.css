@@ -20,11 +20,10 @@
     margin-bottom: 20px !important;
   }
 
-  /* Trim Jotform's default big top margin on mobile,
-     but keep some space so builder tools don't cover it */
+  /* NO top margin - we want full viewport overlay */
   .supernova .form-all,
   body:not(.isEmbed) .form-all {
-    margin-top: 40px !important;
+    margin-top: 0 !important;
   }
 
   .form-all {

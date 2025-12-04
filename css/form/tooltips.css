@@ -59,6 +59,15 @@
   .jf-tooltip-content {
     display: none !important;
   }
+  
+  /* Hide tooltip trigger icons on mobile */
+  .form-help-icon,
+  .form-description-icon,
+  img[src*="question"],
+  img[src*="tooltip"],
+  .icon-question-mark {
+    display: none !important;
+  }
 
   .form-line {
     display: block !important;

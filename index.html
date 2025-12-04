@@ -103,6 +103,102 @@ window.initClarityTags = function() {
 </script>
 <!-- Load cookie consent manager -->
 <script src="js/shared/cookie-consent.js" type="text/javascript"></script>
+<!-- Enable debug panel and add layout debugging -->
+<script>
+window.RICHTEXT_DEBUG = false; // Disable visible debug panel
+</script>
+<!-- Debug top gap issue -->
+<script>
+(function() {
+    // Create visible debug panel for layout info
+    function createLayoutDebugPanel() {
+        var panel = document.createElement('div');
+        panel.id = 'layout-debug-panel';
+        panel.style.position = 'fixed';
+        panel.style.top = '10px';
+        panel.style.right = '10px';
+        panel.style.zIndex = '99999';
+        panel.style.fontSize = '10px';
+        panel.style.fontFamily = 'monospace';
+        panel.style.maxWidth = '300px';
+        panel.style.color = '#0f0';
+        panel.style.background = 'rgba(0,0,0,0.9)';
+        panel.style.borderRadius = '6px';
+        panel.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+        panel.style.padding = '8px';
+        panel.style.maxHeight = '200px';
+        panel.style.overflow = 'auto';
+        
+        document.body.appendChild(panel);
+        return panel;
+    }
+    
+    function logToPanel(panel, message) {
+        if (!panel) return;
+        var line = document.createElement('div');
+        line.textContent = message;
+        line.style.marginBottom = '2px';
+        panel.appendChild(line);
+    }
+    
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            if (!window.RICHTEXT_DEBUG) return;
+            var panel = createLayoutDebugPanel();
+            
+            console.log('=== LAYOUT DEBUG INFO ===');
+            logToPanel(panel, '=== LAYOUT DEBUG ===');
+            logToPanel(panel, 'html element:');
+            var html = document.documentElement;
+            logToPanel(panel, '  height: ' + window.getComputedStyle(html).height);
+            logToPanel(panel, '  margin: ' + window.getComputedStyle(html).margin);
+            logToPanel(panel, '  padding: ' + window.getComputedStyle(html).padding);
+            logToPanel(panel, '  offsetTop: ' + html.offsetTop);
+            
+            logToPanel(panel, 'body element:');
+            var body = document.body;
+            logToPanel(panel, '  height: ' + window.getComputedStyle(body).height);
+            logToPanel(panel, '  margin: ' + window.getComputedStyle(body).margin);
+            logToPanel(panel, '  padding: ' + window.getComputedStyle(body).padding);
+            logToPanel(panel, '  offsetTop: ' + body.offsetTop);
+            
+            logToPanel(panel, '.form-all:');
+            var formAll = document.querySelector('.form-all');
+            if (formAll) {
+                logToPanel(panel, '  height: ' + window.getComputedStyle(formAll).height);
+                logToPanel(panel, '  top: ' + window.getComputedStyle(formAll).top);
+                logToPanel(panel, '  margin: ' + window.getComputedStyle(formAll).margin);
+                logToPanel(panel, '  padding: ' + window.getComputedStyle(formAll).padding);
+                logToPanel(panel, '  offsetTop: ' + formAll.offsetTop);
+                logToPanel(panel, '  rect.top: ' + formAll.getBoundingClientRect().top);
+            }
+            
+            logToPanel(panel, '.supernova:');
+            var supernova = document.querySelector('.supernova');
+            if (supernova) {
+                logToPanel(panel, '  height: ' + window.getComputedStyle(supernova).height);
+                logToPanel(panel, '  margin: ' + window.getComputedStyle(supernova).margin);
+                logToPanel(panel, '  padding: ' + window.getComputedStyle(supernova).padding);
+                logToPanel(panel, '  offsetTop: ' + supernova.offsetTop);
+            }
+            
+            logToPanel(panel, '#stage:');
+            var stage = document.querySelector('#stage');
+            if (stage) {
+                logToPanel(panel, '  height: ' + window.getComputedStyle(stage).height);
+                logToPanel(panel, '  margin: ' + window.getComputedStyle(stage).margin);
+                logToPanel(panel, '  padding: ' + window.getComputedStyle(stage).padding);
+                logToPanel(panel, '  offsetTop: ' + stage.offsetTop);
+            }
+            
+            logToPanel(panel, 'Window:');
+            logToPanel(panel, '  innerHeight: ' + window.innerHeight);
+            logToPanel(panel, '  scrollY: ' + window.scrollY);
+            logToPanel(panel, '====================');
+        }, 1000);
+    });
+})();
+</script>
 <script src="https://cdn.jotfor.ms/s/umd/9649cd012b1/for-sanitize.js" type="text/javascript"></script>
 <script src="https://cdn.jotfor.ms/s/static/b042623a414/js/vendor/smoothscroll.min.js" type="text/javascript"></script>
 <script src="https://cdn.jotfor.ms/s/static/b042623a414/js/errorNavigation.js" type="text/javascript"></script>
