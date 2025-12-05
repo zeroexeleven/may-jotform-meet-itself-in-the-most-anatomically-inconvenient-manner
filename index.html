@@ -1507,21 +1507,17 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                 // Clipboard copy failed - not critical
               }
               
-              // Convert to JotForm API format: submission[field_id] = value
-              const jotformData = {};
-              for (const [key, value] of Object.entries(cleanedSubmissionData)) {
-                jotformData[`submission[${key}]`] = value;
-              }
-              
-              console.log('📋 Converted to JotForm format (sample):');
-              const sampleKeys = Object.keys(jotformData).slice(0, 5);
+              // Send raw field IDs - worker will handle submission[] wrapping
+              console.log('📋 Sending raw field data (sample):');
+              const sampleKeys = Object.keys(cleanedSubmissionData).slice(0, 5);
               for (const key of sampleKeys) {
-                console.log(`  ${key}: "${jotformData[key].substring(0, 50)}..."`);
+                const val = String(cleanedSubmissionData[key]);
+                console.log(`  ${key}: "${val.substring(0, 50)}..."`);
               }
               
               const jotformRequestBody = JSON.stringify({
                 submissionId: editId,
-                submission: jotformData
+                submission: cleanedSubmissionData
               });
               
               console.log('🔄 Step 3: Calling fetch now...');
