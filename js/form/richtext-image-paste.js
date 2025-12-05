@@ -455,11 +455,25 @@
         for (var i = 0; i < images.length; i++) {
             var img = images[i];
             var src = (img.src || '').trim();
+            
+            // Skip data URLs (already converted)
             if (!src || src.indexOf('data:image') === 0) continue;
+            
+            // Skip images already uploaded to Cloudflare worker
+            if (src.indexOf('jotform-image-upload.zeroexeleven.workers.dev') !== -1) {
+                img.dataset.imageUploaded = 'true';
+                continue;
+            }
+            
+            // Skip if already marked as uploaded
+            if (img.dataset.imageUploaded === 'true') continue;
+            
+            // Skip if currently converting
             if (img.dataset.converting === 'true') {
                 hasPendingConversions = true;
                 continue;
             }
+            
             convertImageElementToDataUrl(img, instance, textareaId);
         }
         if (hasPendingConversions) {
@@ -570,9 +584,22 @@
         if (!imgElement) return;
         var src = imgElement.src || '';
         if (!src) return;
-        // Skip if already converted
+        
+        // Skip if already converted to data URL
         if (src.indexOf('data:image') === 0) return;
+        
+        // Skip if already uploaded to Cloudflare worker
+        if (src.indexOf('jotform-image-upload.zeroexeleven.workers.dev') !== -1) {
+            imgElement.dataset.imageUploaded = 'true';
+            return;
+        }
+        
+        // Skip if marked as uploaded
+        if (imgElement.dataset.imageUploaded === 'true') return;
+        
+        // Skip if currently converting
         if (imgElement.dataset.converting === 'true') return;
+        
         imgElement.dataset.converting = 'true';
         var cleanup = function() { delete imgElement.dataset.converting; };
         var activeInstance = instance || getInstanceFromElement(imgElement);
