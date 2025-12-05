@@ -1595,15 +1595,71 @@
         }
     };
     
+    // Persist all rich text editors before page navigation
+    function persistAllEditors() {
+        if (!window.nicEditors || !nicEditors.editors) return;
+        
+        logDebug('Persisting all editors before navigation');
+        
+        var editors = nicEditors.editors;
+        for (var i = 0; i < editors.length; i++) {
+            var editor = editors[i];
+            var instances = editor.nicInstances;
+            if (!instances) continue;
+            
+            for (var j = 0; j < instances.length; j++) {
+                var instance = instances[j];
+                if (instance && instance.elm) {
+                    // Convert any remaining blob URLs
+                    convertAllImagesToDataUrl(instance, instance.e ? instance.e.id : null);
+                    // Persist content to textarea
+                    persistEditorContent(instance);
+                }
+            }
+        }
+    }
+    
+    // Attach to page break buttons
+    function attachPageNavigationHandlers() {
+        // Wait for buttons to be in DOM
+        var nextButtons = document.querySelectorAll('.form-pagebreak-next, [class*="pagebreak-next"]');
+        var backButtons = document.querySelectorAll('.form-pagebreak-back, [class*="pagebreak-back"]');
+        
+        if (nextButtons.length === 0 && backButtons.length === 0) {
+            // Try again if buttons aren't ready yet
+            setTimeout(attachPageNavigationHandlers, 500);
+            return;
+        }
+        
+        // Add click handlers to persist before navigation
+        nextButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                logDebug('Next button clicked, persisting editors');
+                persistAllEditors();
+            }, true); // Use capture phase to run before JotForm handlers
+        });
+        
+        backButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                logDebug('Back button clicked, persisting editors');
+                persistAllEditors();
+            }, true); // Use capture phase to run before JotForm handlers
+        });
+        
+        logDebug('Attached handlers to ' + (nextButtons.length + backButtons.length) + ' page navigation buttons');
+    }
+    
     // Start initialization
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             init();
             setTimeout(attachFormSubmitHandler, 500);
+            setTimeout(attachPageNavigationHandlers, 1000);
         });
     } else {
         init();
         setTimeout(attachFormSubmitHandler, 500);
+        setTimeout(attachPageNavigationHandlers, 1000);
     }
     
     // Store images before page unload (in case of redirect)
