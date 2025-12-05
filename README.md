@@ -44,3 +44,32 @@ submission[field_123]=value&submission[field_456]=another value&submission[field
 
 ### ⚠️ CRITICAL: Do NOT double-wrap submission[] in the client
 The worker adds the `submission[]` wrapper, so client sends raw field IDs only.
+
+### ⚠️ CORS Headers - Fetch Requests to Worker
+
+**IMPORTANT:** The deployed worker does NOT allow custom request headers beyond the standard CORS-safe list.
+
+When fetching from the worker in `summary.js` or any other client code:
+
+**✅ ALLOWED:**
+```javascript
+fetch(`${workerBase}?id=${id}&_=${Date.now()}`, {
+  cache: 'no-store'
+})
+```
+
+**❌ FORBIDDEN (causes CORS errors):**
+```javascript
+fetch(`${workerBase}?id=${id}`, {
+  headers: {
+    'Cache-Control': 'no-cache',  // ❌ NOT in Access-Control-Allow-Headers
+    'Pragma': 'no-cache'           // ❌ NOT in Access-Control-Allow-Headers
+  }
+})
+```
+
+**Cache Prevention Strategy:**
+- Use `cache: 'no-store'` in fetch options
+- Add timestamp query parameter: `&_=${Date.now()}`
+- DO NOT use Cache-Control or Pragma headers (worker doesn't allow them)
+
