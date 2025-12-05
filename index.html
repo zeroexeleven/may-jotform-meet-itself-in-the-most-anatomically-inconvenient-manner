@@ -830,10 +830,11 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
           console.log('🛑 Form submission blocked early');
         }
         
-        // Handle back navigation - return to summary with correct ID
+        // Handle back navigation - return to summary with correct ID and timestamp
         window.addEventListener('popstate', function(event) {
           if (returnTo === 'summary') {
-            window.location.href = `pages/summary.html?id=${encodeURIComponent(editId)}${getPersistedParams()}`;
+            const timestamp = Date.now();
+            window.location.href = `pages/summary.html?id=${encodeURIComponent(editId)}&t=${timestamp}${getPersistedParams()}`;
           }
         });
         

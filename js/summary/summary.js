@@ -73,6 +73,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadSubmission(submissionId);
 
+  // Reload fresh data when page becomes visible (handles back button, cached navigation)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && submissionId) {
+      console.log('🔄 Page visible, reloading fresh submission data...');
+      loadSubmission(submissionId);
+    }
+  });
+
+  // Also reload when page gains focus (extra safety for browser back)
+  window.addEventListener('focus', () => {
+    if (submissionId) {
+      console.log('🔄 Window focused, reloading fresh submission data...');
+      loadSubmission(submissionId);
+    }
+  });
+
   async function loadSubmission(id) {
     try {
       // Add cache-busting timestamp to always fetch fresh data
@@ -81,7 +97,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(
         `${workerBase}?id=${encodeURIComponent(id)}&_=${cacheBust}`,
         {
-          cache: 'no-store'
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
         }
       );
       const data = await res.json();
@@ -526,15 +546,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function hasContent(value) {
-    if (value == null) return false;
+    if (value == null || value === "") return false;
 
     if (typeof value === "string") {
       // strip non-breaking spaces (actual char) and whitespace
       const trimmed = value.replace(/\u00a0/g, " ").trim();
       if (trimmed === "") return false;
       if (isEmptyHTML(value)) return false;
-      // Check for JSON strings that represent empty arrays
-      if (trimmed === '[""]' || trimmed === "[]") return false;
+      // Check for JSON strings that represent empty arrays or empty objects
+      if (trimmed === '[""]' || trimmed === "[]" || trimmed === '{}' || trimmed === 'null') return false;
       return true;
     }
 
