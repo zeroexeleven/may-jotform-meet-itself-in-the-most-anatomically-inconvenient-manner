@@ -97,11 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(
         `${workerBase}?id=${encodeURIComponent(id)}&_=${cacheBust}`,
         {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache'
-          }
+          cache: 'no-store'
         }
       );
       const data = await res.json();
