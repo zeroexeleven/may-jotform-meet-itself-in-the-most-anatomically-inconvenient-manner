@@ -898,9 +898,15 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   // Clean up malformed keys (like "typeA115[" - strip trailing brackets)
                   const cleanSubKey = subKey.replace(/[\[\]]+$/, '');
                   
+                  // IMPORTANT: Check if subValue is an object (matrix/nested data) BEFORE treating as checkbox
+                  // Matrix data structure: { "rowId": { "colId": "value" } }
+                  // We need to handle this in the matrix-specific code below, not here
+                  const isNestedObject = typeof subValue === 'object' && subValue !== null && !Array.isArray(subValue);
+                  
                   // For numeric keys or keys with brackets (like checkbox array values), try to find checkboxes by value FIRST
                   // Also handles malformed keys like "typeA115[" from API
-                  if (subKey.match(/^\d+$/) || subKey.includes('[') || subKey.includes(']')) {
+                  // BUT SKIP if this is nested matrix data (object values)
+                  if (!isNestedObject && (subKey.match(/^\d+$/) || subKey.includes('[') || subKey.includes(']'))) {
                     // This is likely a checkbox value - find all checkboxes for this question
                     const allCheckboxes = document.querySelectorAll(`[name^="q${qid}_"][type="checkbox"]`);
                     let matchedAny = false;
@@ -1110,6 +1116,50 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   }
                 }
               } else {
+                // Check if this is a matrix field with array structure
+                // Matrix data comes as array of arrays: [[val1], [val2], [val3]]
+                if (Array.isArray(fieldValue) && fieldValue.length > 0 && Array.isArray(fieldValue[0])) {
+                  console.log(`  → Matrix field (array of arrays) with ${fieldValue.length} rows`);
+                  
+                  // Find the matrix table inputs
+                  const matrixInputs = document.querySelectorAll(`[name^="q${qid}_"][name*="["][name*="]"]`);
+                  
+                  if (matrixInputs.length > 0) {
+                    // Group inputs by row and column indices
+                    const cellMap = new Map();
+                    
+                    matrixInputs.forEach(inp => {
+                      // Extract [row][col] from name like "q4_topSecret[0][0]"
+                      const match = inp.name.match(/\[(\d+)\]\[(\d+)\]$/);
+                      if (match) {
+                        const rowIdx = parseInt(match[1], 10);
+                        const colIdx = parseInt(match[2], 10);
+                        const key = `${rowIdx},${colIdx}`;
+                        cellMap.set(key, inp);
+                      }
+                    });
+                    
+                    // Fill each cell with the corresponding value
+                    fieldValue.forEach((row, rowIdx) => {
+                      if (Array.isArray(row)) {
+                        row.forEach((cellValue, colIdx) => {
+                          const key = `${rowIdx},${colIdx}`;
+                          const cellInput = cellMap.get(key);
+                          
+                          if (cellInput && cellValue) {
+                            cellInput.value = cellValue;
+                            filledCount++;
+                            console.log(`  ✓ Matrix[${rowIdx}][${colIdx}] = ${cellValue}`);
+                          }
+                        });
+                      }
+                    });
+                    
+                    // Skip the regular input handling below
+                    continue;
+                  }
+                }
+                
                 // Convert fieldValue to string for regular fields
                 let value;
                 if (typeof fieldValue === 'string') {
