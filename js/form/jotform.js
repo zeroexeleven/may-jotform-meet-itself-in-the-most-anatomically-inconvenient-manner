@@ -32785,16 +32785,9 @@ var JotForm = {
             // eslint-disable-next-line no-var
             var txtarea = fieldElement.querySelector('textarea');
             if (rich && txtarea) {
-                // block pasting image in nicEdit editor as in TinyMCE #15082481
-                rich.addEventListener('blur', () => {
-                    const base64ImageRegex = new RegExp('<img src="data:image.+>')
-                    if (rich.innerHTML.match(base64ImageRegex)) {
-                        const newInnerHTML = rich.innerHTML.replace(base64ImageRegex, '');
-                        txtarea.value = newInnerHTML;
-                        if (txtarea.triggerEvent) txtarea.triggerEvent('keyup');
-                        rich.update(newInnerHTML);
-                    }
-                });
+                // REMOVED: image-stripping logic that was blocking pasted images
+                // The richtext-image-paste.js system handles image uploads properly
+                // Keeping images in the HTML content allows them to display in summary/edit views
                 rich.addEventListener('keyup', function () {
                     txtarea.value = rich.innerHTML;
                     if (txtarea.triggerEvent) txtarea.triggerEvent('keyup');
