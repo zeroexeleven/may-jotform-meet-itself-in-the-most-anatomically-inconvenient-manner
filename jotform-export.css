@@ -1199,6 +1199,31 @@ textarea[data-richtext="Yes"] {
 }
 
 /* ===========================================
+   HIDDEN FIELDS / SPECIAL GROUPING
+   =========================================== */
+
+/* Hide the label and reduce spacing for none_hide fields */
+li[id*="none_hide"] .form-label,
+li.form-line[data-type="control_checkbox"] .form-label:has(+ div .form-checkbox[name*="none_hide"]) {
+  display: none !important;
+}
+
+li[id*="none_hide"] {
+  padding-top: 0 !important;
+  margin-top: -8px !important;
+}
+
+/* Alternative selector for none_hide fields */
+.form-line:has([name*="none_hide"]) .form-label {
+  display: none !important;
+}
+
+.form-line:has([name*="none_hide"]) {
+  padding-top: 0 !important;
+  margin-top: -8px !important;
+}
+
+/* ===========================================
    PRINT STYLES — MATCH REVIEW BACKGROUNDS
    =========================================== */
 
