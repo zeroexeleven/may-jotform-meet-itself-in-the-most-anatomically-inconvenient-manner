@@ -1438,12 +1438,11 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
               }
             }
             
-            // Convert checkbox arrays to comma-separated strings with clean key (no [])
+            // Convert checkbox arrays to comma-separated strings but KEEP the [] brackets
+            // JotForm expects: "54_whichOf[]": "option1,option2,option3"
             for (const [key, value] of Object.entries(submissionData)) {
               if (key.endsWith('[]') && Array.isArray(value)) {
-                const cleanKey = key.replace(/\[\]$/, '');
-                submissionData[cleanKey] = value.join(',');
-                delete submissionData[key];
+                submissionData[key] = value.join(',');
               }
             }
             

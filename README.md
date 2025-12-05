@@ -22,12 +22,19 @@ It is deployed separately. Do not suggest modifying it or say you can't find it.
 {
   "submissionId": "123456789",
   "submission": {
-    "field_123": "value",
-    "field_456": "another value",
-    "field_789[row0][col0]": "matrix cell value"
+    "140": "yes",
+    "99_typeA99[0][0]": "Discord",
+    "99_typeA99[1][0]": "SMS",
+    "54_whichOf[]": "option1,option2,option3"
   }
 }
 ```
+
+**Format Rules:**
+- Simple fields (radio, text, select): Use numeric QID only (e.g., `"140": "yes"`)
+- Matrix/table fields: `{qid}_{fieldName}[row][col]` (e.g., `"99_typeA99[0][0]": "value"`)
+- Checkbox arrays: `{qid}_{fieldName}[]` with comma-separated values (e.g., `"54_whichOf[]": "opt1,opt2"`)
+- **CRITICAL:** Always remove the 'q' prefix from form input names (input `q99_typeA99[0][0]` → key `99_typeA99[0][0]`)
 
 **Worker receives and converts to JotForm API format:**
 ```javascript
