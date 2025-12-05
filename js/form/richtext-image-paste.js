@@ -428,6 +428,19 @@
                         logDebug('Polling found ' + blobUrls.length + ' unconverted blob(s)', { urls: blobUrls });
                         convertAllImagesToDataUrl(instance, textareaId);
                     }
+                    
+                    // ALSO: Always sync content to textarea periodically (even if no conversion needed)
+                    // This ensures content is never lost during page navigation
+                    if (instance.e && instance.e.tagName === 'TEXTAREA') {
+                        var currentEditorContent = instance.elm.innerHTML;
+                        var currentTextareaContent = instance.e.value;
+                        
+                        // Only update if there's a difference (avoid unnecessary updates)
+                        if (currentEditorContent !== currentTextareaContent) {
+                            instance.e.value = currentEditorContent;
+                            logDebug('Periodic sync: updated textarea for ' + textareaId);
+                        }
+                    }
                 }
             }, 1000);
         }
@@ -1631,22 +1644,45 @@
             return;
         }
         
-        // Add click handlers to persist before navigation
+        // Add multiple handlers at different phases to ensure we catch the click
         nextButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                logDebug('Next button clicked, persisting editors');
+            // Capture phase - runs FIRST before any other handlers
+            btn.addEventListener('click', function(e) {
+                logDebug('Next button clicked (capture), persisting editors');
                 persistAllEditors();
-            }, true); // Use capture phase to run before JotForm handlers
+            }, true);
+            
+            // Bubble phase - runs during normal event flow
+            btn.addEventListener('click', function(e) {
+                logDebug('Next button clicked (bubble), persisting editors');
+                persistAllEditors();
+            }, false);
+            
+            // mousedown - fires before click
+            btn.addEventListener('mousedown', function(e) {
+                logDebug('Next button mousedown, persisting editors');
+                persistAllEditors();
+            }, true);
         });
         
         backButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                logDebug('Back button clicked, persisting editors');
+            btn.addEventListener('click', function(e) {
+                logDebug('Back button clicked (capture), persisting editors');
                 persistAllEditors();
-            }, true); // Use capture phase to run before JotForm handlers
+            }, true);
+            
+            btn.addEventListener('click', function(e) {
+                logDebug('Back button clicked (bubble), persisting editors');
+                persistAllEditors();
+            }, false);
+            
+            btn.addEventListener('mousedown', function(e) {
+                logDebug('Back button mousedown, persisting editors');
+                persistAllEditors();
+            }, true);
         });
         
-        logDebug('Attached handlers to ' + (nextButtons.length + backButtons.length) + ' page navigation buttons');
+        logDebug('Attached multiple handlers to ' + (nextButtons.length + backButtons.length) + ' page navigation buttons');
     }
     
     // Start initialization

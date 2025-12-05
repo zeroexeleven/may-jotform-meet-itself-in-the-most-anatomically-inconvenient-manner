@@ -1508,6 +1508,23 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                 console.warn('⚠️ Could not copy to clipboard:', e);
               }
               
+              // Convert to JotForm API format: submission[field_id] = value
+              const jotformData = {};
+              for (const [key, value] of Object.entries(cleanedSubmissionData)) {
+                jotformData[`submission[${key}]`] = value;
+              }
+              
+              console.log('📋 Converted to JotForm format (sample):');
+              const sampleKeys = Object.keys(jotformData).slice(0, 5);
+              for (const key of sampleKeys) {
+                console.log(`  ${key}: "${jotformData[key].substring(0, 50)}..."`);
+              }
+              
+              const jotformRequestBody = JSON.stringify({
+                submissionId: editId,
+                submission: jotformData
+              });
+              
               console.log('🔄 Step 3: Calling fetch now...');
               const fetchPromise = fetch('https://jotform-proxy.zeroexeleven.workers.dev/edit', {
                 method: 'POST',
@@ -1516,7 +1533,7 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: requestBody
+                body: jotformRequestBody
               });
               
               console.log('🔄 Step 4: Fetch promise created, awaiting response...');
