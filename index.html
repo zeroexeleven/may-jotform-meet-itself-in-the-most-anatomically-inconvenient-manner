@@ -1055,7 +1055,7 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                           rowIndex = parseInt(cleanKey, 10);
                         }
                       } catch (e) {
-                        console.warn(`  ⚠ Error parsing rowIds for q${qid}:`, e);
+                        // Error parsing rowIds - fall back to numeric key
                         if (Number(cleanKey) < 100) rowIndex = parseInt(cleanKey, 10);
                       }
                     } else {
@@ -1103,8 +1103,6 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                             filledCount++;
                             found = true;
                             console.log(`  ✓ Matrix cell [${rowIndex}][${colIndex}] = ${cellValue}`);
-                          } else {
-                            console.warn(`  ✗ Matrix input not found: ${selector}`);
                           }
                         }
                       }
@@ -1112,7 +1110,7 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   }
                   
                   if (!found) {
-                    console.warn(`  ✗ Could not find input for q${qid}[${cleanSubKey}] or q${qid}_${cleanSubKey} (original key: ${subKey})`);
+                    // Input not found - this is normal for conditional/hidden fields
                   }
                 }
               } else {
@@ -1236,7 +1234,6 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                 }
                 console.log(`  ✓ Filled q${qid}`);
               } else {
-                console.warn(`  ✗ Could not find input for q${qid}`);
               }
               }
             }
@@ -1304,7 +1301,6 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   
                   // Extra safety: ensure it's actually a string, not an object
                   if (typeof content === 'object' && content !== null) {
-                    console.warn(`⚠️ nicEditor returned object for ${textarea.id}, using textarea value instead`);
                     content = textarea.value || '';
                   }
                   
@@ -1393,22 +1389,17 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   fieldKey = qid;
                 }
                 
-                // Skip if this is a richtext field (already processed above)
+                  // Skip if this is a richtext field (already processed above)
                 if (richtextFieldKeys.has(fieldKey) || richtextFieldKeys.has(rawFieldKey)) {
-                  console.log(`⏭️ Skipping richtext textarea ${key} (already captured from editor)`);
                   continue;
-                }
-                
-                // Ensure value is a string (not an object)
+                }                // Ensure value is a string (not an object)
                 let processedValue = value;
                 if (typeof value === 'object' && value !== null) {
                   // If it's a File or Blob, skip it (file uploads handled separately)
                   if (value instanceof File || value instanceof Blob) {
-                    console.warn(`⚠️ Skipping file upload field: ${key}`);
                     continue;
                   }
-                  // For objects, convert to string (not JSON) - this shouldn't happen for regular fields
-                  console.warn(`⚠️ Field ${key} has object value, converting to string:`, value);
+                  // For objects, convert to string - this shouldn't normally happen
                   processedValue = String(value);
                 }
                 
@@ -1416,9 +1407,7 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                 if (!processedValue || processedValue.trim() === '') {
                   if (isMatrixCell) {
                     processedValue = ''; // Send empty string for empty matrix cells
-                    console.log(`📊 Including empty matrix cell: ${fieldKey}`);
                   } else {
-                    console.log(`⏭️ Skipping empty field: ${key}`);
                     continue;
                   }
                 }
@@ -1503,9 +1492,8 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
               // Copy to clipboard for inspection (won't be lost on redirect)
               try {
                 navigator.clipboard.writeText(fullDataJson);
-                console.log('✅ Submission data copied to clipboard! Paste it somewhere to inspect.');
               } catch (e) {
-                console.warn('⚠️ Could not copy to clipboard:', e);
+                // Clipboard copy failed - not critical
               }
               
               // Convert to JotForm API format: submission[field_id] = value
