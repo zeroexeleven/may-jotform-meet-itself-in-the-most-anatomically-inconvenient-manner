@@ -23,35 +23,66 @@ It is deployed separately. Do not suggest modifying it or say you can't find it.
   "submissionId": "123456789",
   "submission": {
     "140": "yes",
+    "4_topSecret[0][0]": "basta",
+    "4_topSecret[2][0]": "🥀",
     "99_typeA99[0][0]": "Discord",
     "99_typeA99[1][0]": "SMS",
-    "54_whichOf[]": "option1,option2,option3"
+    "54_whichOf[]": "unlisted factors"
   }
 }
 ```
 
 **Format Rules:**
 - Simple fields (radio, text, select): Use numeric QID only (e.g., `"140": "yes"`)
-- Matrix/table fields: `{qid}_{fieldName}[row][col]` (e.g., `"99_typeA99[0][0]": "value"`)
+  - Worker wraps as: `submission[140]=yes`
+- Matrix/table fields: `{qid}_{fieldName}[row][col]` (e.g., `"4_topSecret[0][0]": "value"`)
+  - Worker wraps as: `submission[4_topSecret[0][0]]=value`
   - **To clear a matrix cell:** Omit it from the submission entirely (don't send empty string)
-- Checkbox arrays: `{qid}_{fieldName}[]` with comma-separated values (e.g., `"54_whichOf[]": "opt1,opt2"`)
+- Checkbox arrays: `{qid}_{fieldName}[]` with comma-separated values (e.g., `"54_whichOf[]": "unlisted factors"`)
+  - Worker wraps as: `submission[54_whichOf[]]=unlisted factors`
   - **CRITICAL:** Keep the `[]` brackets intact - don't remove them!
   - Single checked value: `"54_whichOf[]": "unlisted factors"`
   - Multiple values: `"54_whichOf[]": "option1,option2,option3"`
-- **CRITICAL:** Always remove the 'q' prefix from form input names (input `q99_typeA99[0][0]` → key `99_typeA99[0][0]`)
+- **CRITICAL:** Always remove the 'q' prefix from form input names (input `q4_topSecret[0][0]` → key `4_topSecret[0][0]`)
+
+**⚠️ WORKER BUG ALERT:**
+The current worker code blindly wraps ALL keys with `submission[]`, which creates malformed field names for matrix and checkbox fields!
+- Current: `submission[4_topSecret[0][0]]` ❌ WRONG
+- JotForm needs: `submission[4][topSecret][0][0]` OR different format
+
+The worker needs to parse bracketed field names and construct proper nested format for JotForm API.
 
 **Worker receives and converts to JotForm API format:**
 ```javascript
-// Worker does this conversion:
+// ⚠️ CURRENT WORKER CODE (BROKEN FOR MATRIX/CHECKBOXES):
 for (const [key, value] of Object.entries(submissionData)) {
   formData.append(`submission[${key}]`, value);
 }
+// This creates: submission[4_topSecret[0][0]] which is WRONG!
 ```
 
-**Final format sent to JotForm API:**
+**❌ Current broken format sent to JotForm API:**
 ```
-submission[field_123]=value&submission[field_456]=another value&submission[field_789[row0][col0]]=matrix cell value
+submission[140]=yes                          ✅ OK (simple field)
+submission[4_topSecret[0][0]]=basta          ❌ WRONG (matrix - malformed brackets)
+submission[54_whichOf[]]=unlisted factors    ❌ WRONG (checkbox - malformed brackets)
 ```
+
+**✅ CORRECT format JotForm API expects:**
+Based on form input names `q4_topSecret[0][0]` and `q54_whichOf[]`, the API expects:
+```
+submission[q140]=yes
+submission[q4_topSecret[0][0]]=basta
+submission[q54_whichOf[]]=unlisted factors
+```
+
+**🔧 FIX NEEDED:**
+Client should send keys WITH the 'q' prefix for ALL fields:
+- Simple: `"q140": "yes"`
+- Matrix: `"q4_topSecret[0][0]": "basta"`  
+- Checkbox: `"q54_whichOf[]": "unlisted factors"`
+
+Then worker wraps with `submission[]` to create proper format.
 
 ### ⚠️ CRITICAL: Do NOT double-wrap submission[] in the client
 The worker adds the `submission[]` wrapper, so client sends raw field IDs only.

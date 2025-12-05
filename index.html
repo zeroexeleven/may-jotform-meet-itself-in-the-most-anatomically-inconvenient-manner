@@ -1320,35 +1320,18 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   const contentStr = String(content || '');
                   richtextContent[textarea.id] = contentStr;
                   
-                  // Store the field key (without leading 'q')
-                  // Keep the full field name: "q142_anythingElse" -> "142_anythingElse"
-                  const fullFieldKey = textarea.name.substring(1);
-                  let richtextKey = fullFieldKey; // default to full key
+                  // Remove 'q' prefix: q142_anythingElse → 142_anythingElse
+                  const rawFieldKey = textarea.name.substring(1);
+                  const parts = rawFieldKey.split('_');
+                  const qid = parts[0];
+                  const nestedKey = parts.slice(1).join('_');
+                  const richtextKey = nestedKey || qid;
 
-                  // Attempt to extract numeric question ID and clean field name
-                  let richtextQid = null;
-                  let richtextFieldName = fullFieldKey;
-                  const richtextMatch = fullFieldKey.match(/^(\d+)_(.+)$/);
-                  if (richtextMatch) {
-                    richtextQid = richtextMatch[1];
-                    richtextFieldName = richtextMatch[2];
-                    richtextKey = richtextQid; // For simple fields use qid only
-                  }
+                  // Track this key so we can skip the FormData entry later
+                  richtextFieldKeys.add(textarea.name);
 
-                  // Track both key formats so we can skip the FormData entry later
-                  richtextFieldKeys.add(fullFieldKey);
-                  richtextFieldKeys.add(richtextKey);
-
-                  // Add directly to submission data using the appropriate key
+                  // Add to submissionData under the nested key
                   submissionData[richtextKey] = contentStr;
-
-                  // Also add nested keys so JotForm sets answer + prettyFormat consistently
-                  if (richtextQid) {
-                    const answerNestedKey = `${richtextQid}][answer][${richtextFieldName}`;
-                    const prettyNestedKey = `${richtextQid}][prettyFormat`;
-                    submissionData[answerNestedKey] = contentStr;
-                    submissionData[prettyNestedKey] = contentStr;
-                  }
                   
                   console.log(`📝 Captured richtext from ${textarea.id} as ${richtextKey}:`, contentStr.substring(0, 100));
                 }
@@ -1378,33 +1361,17 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
               // The worker will convert them properly for JotForm API
               
               // Regular field: qXXX_yyy format
-              const match = key.match(/^q(\d+)_(.+)$/);
+              const match = key.match(/^q(\d+)(?:_(.+))?$/);
               if (match) {
-                const qid = match[1];
-                const fieldName = match[2];
+                const qid = match[1]; // Just the numeric ID
+                const fieldName = match[2]; // Everything after first underscore (if any)
                 
-                const rawFieldKey = key.substring(1); // Remove leading 'q' -> "4_topSecret[0][0]"
-                
-                // Determine the correct field key format:
-                // - Any field with brackets -> keep full: "4_topSecret[0][0]", "115_typeA115[]", "64_input64[key]"
-                // - Simple fields (radio, text, select without brackets) -> use qid only: "140"
-                
-                const hasBrackets = fieldName.includes('[');
-                const isMatrixCell = /\[\d+\]\[\d+\]$/.test(fieldName);
-                
-                let fieldKey;
-                if (hasBrackets) {
-                  // Keep full bracket notation for all bracketed fields
-                  fieldKey = rawFieldKey;
-                } else {
-                  // Simple fields use numeric qid only
-                  fieldKey = qid;
+                // Skip if this is a richtext field (already processed above)
+                if (richtextFieldKeys.has(key)) {
+                  continue;
                 }
                 
-                  // Skip if this is a richtext field (already processed above)
-                if (richtextFieldKeys.has(fieldKey) || richtextFieldKeys.has(rawFieldKey)) {
-                  continue;
-                }                // Ensure value is a string (not an object)
+                // Ensure value is a string (not an object)
                 let processedValue = value;
                 if (typeof value === 'object' && value !== null) {
                   // If it's a File or Blob, skip it (file uploads handled separately)
@@ -1421,30 +1388,38 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   continue;
                 }
                 
-                // For checkbox arrays (key ends with []), collect values into array first
-                const isCheckboxArray = fieldKey.endsWith('[]');
-                if (isCheckboxArray) {
-                  if (!submissionData[fieldKey]) {
-                    submissionData[fieldKey] = [];
+                // Determine field type and format accordingly
+                if (fieldName && fieldName.includes('[')) {
+                  // Matrix or checkbox array field
+                  if (fieldName.endsWith('[]')) {
+                    // Checkbox array: q54_whichOf[] → collect into array for QID "54"
+                    const checkboxKey = `${qid}_${fieldName}`;
+                    if (!submissionData[checkboxKey]) {
+                      submissionData[checkboxKey] = [];
+                    }
+                    submissionData[checkboxKey].push(processedValue);
+                  } else if (/\[\d+\]\[\d+\]$/.test(fieldName)) {
+                    // Matrix cell: q4_topSecret[0][0] → "4_topSecret[0][0]"
+                    const matrixKey = `${qid}_${fieldName}`;
+                    submissionData[matrixKey] = processedValue;
                   }
-                  submissionData[fieldKey].push(processedValue);
                 } else {
-                  // For all other fields, just store directly
-                  submissionData[fieldKey] = processedValue;
+                  // Simple field: q140 → "140" or q140_fieldName → "140_fieldName"
+                  const simpleKey = fieldName ? `${qid}_${fieldName}` : qid;
+                  submissionData[simpleKey] = processedValue;
                 }
               }
             }
             
-            // Convert checkbox arrays to comma-separated strings but KEEP the [] brackets
-            // JotForm expects: "54_whichOf[]": "option1,option2,option3"
+            // Convert checkbox arrays to comma-separated strings
+            // Format: "54_whichOf[]": "option1,option2,option3"
             for (const [key, value] of Object.entries(submissionData)) {
-              if (key.endsWith('[]') && Array.isArray(value)) {
+              if (key.includes('[') && key.endsWith('[]') && Array.isArray(value)) {
                 submissionData[key] = value.join(',');
               }
             }
             
             // Add inline fields with proper subfield structure
-            // JotForm API expects: submission[qid_inputXX[subkey]]=value
             for (const [qid, fields] of Object.entries(inlineFields)) {
               for (const [subKey, subValue] of Object.entries(fields)) {
                 // Use the full bracket notation that matches the input name
