@@ -1296,8 +1296,19 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
               nicEditors.editors.forEach(editor => {
                 const textarea = editor.e;
                 if (textarea && textarea.id && textarea.name) {
-                  // Get HTML content from editor
-                  let content = editor.getContent();
+                  // IMPORTANT: Get content from the actual DOM element, not from editor.getContent()
+                  // The .nicEdit-main div has the actual current HTML including new uploaded images
+                  let content = '';
+                  
+                  // Find the nicEdit-main element for this editor
+                  const editorElement = textarea.parentElement.querySelector('.nicEdit-main');
+                  if (editorElement) {
+                    // Get the raw HTML from the editable div - this has the latest content
+                    content = editorElement.innerHTML;
+                  } else {
+                    // Fallback to editor methods if can't find the element
+                    content = editor.getContent();
+                  }
                   
                   // Extra safety: ensure it's actually a string, not an object
                   if (typeof content === 'object' && content !== null) {
