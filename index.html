@@ -1415,13 +1415,10 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,{"description":"Basically, we
                   processedValue = String(value);
                 }
                 
-                // Skip empty fields EXCEPT matrix cells which need explicit empty strings
+                // Skip empty fields (including empty matrix cells)
+                // JotForm clears matrix cells when they're not included in the submission
                 if (!processedValue || processedValue.trim() === '') {
-                  if (isMatrixCell) {
-                    processedValue = ''; // Send empty string for empty matrix cells
-                  } else {
-                    continue;
-                  }
+                  continue;
                 }
                 
                 // For checkbox arrays (key ends with []), collect values into array first
